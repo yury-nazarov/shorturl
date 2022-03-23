@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/yury-nazarov/shorturl/internal/app"
 	"io"
 	"log"
@@ -8,10 +9,13 @@ import (
 	"strings"
 )
 
-var db = &app.UrlDB{
+var (
+	db = &app.UrlDB{
 		Db: map[string]string{},
 		ShortURLLength: 7,
 	}
+	fqdn = "http://127.0.0.1:8080/"
+)
 
 
 func main() {
@@ -41,7 +45,7 @@ func urlHandler(w http.ResponseWriter, r * http.Request) {
 
 		// Отправляем ответ
 		w.WriteHeader(http.StatusCreated)
-		_, err = w.Write([]byte(url))
+		_, err = w.Write([]byte(fmt.Sprintf("%s%s\n", fqdn, url)))
 		if err != nil {
 			log.Println("writeResponse:", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
