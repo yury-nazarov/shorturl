@@ -45,7 +45,7 @@ func urlHandler(w http.ResponseWriter, r * http.Request) {
 
 		// Отправляем ответ
 		w.WriteHeader(http.StatusCreated)
-		_, err = w.Write([]byte(fmt.Sprintf("%s%s\n", fqdn, url)))
+		_, err = w.Write([]byte(fmt.Sprintf("%s%s", fqdn, url)))
 		if err != nil {
 			log.Println("writeResponse:", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
