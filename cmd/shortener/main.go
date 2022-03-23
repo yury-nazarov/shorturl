@@ -10,8 +10,8 @@ import (
 )
 
 var (
-	db = &app.UrlDB{
-		Db: map[string]string{},
+	db = &app.URLDB{
+		DB: map[string]string{},
 		ShortURLLength: 7,
 	}
 	fqdn = "http://127.0.0.1:8080/"
