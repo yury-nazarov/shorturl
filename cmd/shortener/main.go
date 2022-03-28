@@ -6,7 +6,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"strings"
 )
 
 var (
@@ -14,13 +13,16 @@ var (
 		DB: map[string]string{},
 		URLLength: 5,
 	}
-	fqdn = "http://127.0.0.1:8080/"
+	httpProtocol = "http"
+	listenAddress = "127.0.0.1"
+	port = 8080
+	serviceName = fmt.Sprintln("%s://%s:%d", httpProtocol, listenAddress, port)
 )
 
 
 func main() {
 	http.HandleFunc("/", urlHandler)
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(http.ListenAndServe(fmt.Sprintf("%s:%d", listenAddress, port), nil))
 }
 
 func urlHandler(w http.ResponseWriter, r * http.Request) {
@@ -41,11 +43,11 @@ func urlHandler(w http.ResponseWriter, r * http.Request) {
 		}
 
 		// Сокращаем url и добавляем в БД
-		url := db.Add(string(bodyData))
+		shortPath := db.Add(string(bodyData))
 
 		// Отправляем ответ
 		w.WriteHeader(http.StatusCreated)
-		_, err = w.Write([]byte(fmt.Sprintf("%s%s", fqdn, url)))
+		_, err = w.Write([]byte(fmt.Sprintf("%s/%s", serviceName, shortPath)))
 		if err != nil {
 			log.Println("writeResponse:", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -54,8 +56,8 @@ func urlHandler(w http.ResponseWriter, r * http.Request) {
 		return
 
 	case "GET":
-		// Получаем id из URL для дальнейшего поиска в БД
-		urlID := strings.Split(r.URL.String(), "/")[1]
+		// Получаем path/urlID из URL для дальнейшего поиска по нему в БД
+		urlID := r.URL.Path[1:]
 		// Получаем оригинальный URL
 		originURL, err := db.Get(urlID)
 		if err != nil {
