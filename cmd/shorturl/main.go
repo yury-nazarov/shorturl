@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/yury-nazarov/shorturl/internal/app"
+	"github.com/yury-nazarov/shorturl/internal/app/url"
 	"io"
 	"log"
 	"net/http"
@@ -10,9 +10,9 @@ import (
 )
 
 var (
-	db = &app.URLDB{
+	db = &url.URLDB{
 		DB: map[string]string{},
-		ShortURLLength: 7,
+		URLLength: 5,
 	}
 	fqdn = "http://127.0.0.1:8080/"
 )
@@ -40,7 +40,7 @@ func urlHandler(w http.ResponseWriter, r * http.Request) {
 			return
 		}
 
-		// Сокращаем url
+		// Сокращаем url и добавляем в БД
 		url := db.Add(string(bodyData))
 
 		// Отправляем ответ
@@ -54,17 +54,17 @@ func urlHandler(w http.ResponseWriter, r * http.Request) {
 		return
 
 	case "GET":
-		// Получаем id из URL
+		// Получаем id из URL для дальнейшего поиска в БД
 		urlID := strings.Split(r.URL.String(), "/")[1]
 		// Получаем оригинальный URL
-		longURL, err := db.Get(urlID)
+		originURL, err := db.Get(urlID)
 		if err != nil {
 			log.Println(err)
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 		// Отправляем ответ
-		w.Header().Set("Location", longURL)
+		w.Header().Set("Location", originURL)
 		w.WriteHeader(http.StatusTemporaryRedirect)
 		return
 
