@@ -16,7 +16,7 @@ var (
 	httpProtocol = "http"
 	listenAddress = "127.0.0.1"
 	port = 8080
-	serviceName = fmt.Sprintln("%s://%s:%d", httpProtocol, listenAddress, port)
+	serviceName = fmt.Sprintf("%s://%s:%d", httpProtocol, listenAddress, port)
 )
 
 
