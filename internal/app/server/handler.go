@@ -40,8 +40,8 @@ func (u *URLService) URLHandler(w http.ResponseWriter, r * http.Request) {
 		// Отправляем и обрабатываем HTTP Response
 		_, err = w.Write([]byte(shortURL))
 		if err != nil {
-			log.Println("writeResponse:", err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			//http.Error(w, err.Error(), http.StatusInternalServerError)
+			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 		return
@@ -52,8 +52,7 @@ func (u *URLService) URLHandler(w http.ResponseWriter, r * http.Request) {
 		// Получаем оригинальный URL
 		originURL, err := u.DB.Get(urlID)
 		if err != nil {
-			log.Println(err)
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			w.WriteHeader(http.StatusNotFound)
 			return
 		}
 		// Отправляем ответ
