@@ -1,9 +1,10 @@
 package main
 
 import (
+	"log"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"log"
 
 	"github.com/yury-nazarov/shorturl/internal/app/server"
 	"github.com/yury-nazarov/shorturl/internal/app/storage"
