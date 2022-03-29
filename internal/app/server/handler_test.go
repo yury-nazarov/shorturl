@@ -105,6 +105,7 @@ func TestURLService_URLHandler(t *testing.T) {
 			h.ServeHTTP(w, request)
 
 			result := w.Result()
+			defer result.Body.Close()
 
 			assert.Equal(t, tt.want.statusCode, result.StatusCode)
 			assert.Equal(t, tt.want.header.contentType, result.Header.Get("Content-Type"))
