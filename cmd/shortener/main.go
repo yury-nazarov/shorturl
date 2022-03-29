@@ -12,7 +12,7 @@ func main() {
 
 	db := storage.New()
 	s := server.New("127.0.0.1", 8080, 5, db)
-	http.HandleFunc("/", s.UrlHandler)
+	http.HandleFunc("/", s.URLHandler)
 	log.Fatal(s.Bind.ListenAndServe())
 }
 

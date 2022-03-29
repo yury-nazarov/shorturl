@@ -8,7 +8,7 @@ import (
 )
 
 
-func (u *URLService) UrlHandler(w http.ResponseWriter, r * http.Request) {
+func (u *URLService) URLHandler(w http.ResponseWriter, r * http.Request) {
 	switch r.Method {
 	case "POST":
 		// Читаем присланые данные
