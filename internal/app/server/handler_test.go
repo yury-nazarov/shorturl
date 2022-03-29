@@ -1,6 +1,7 @@
 package server
 
 import (
+	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/require"
 	"io"
 	"net/http"
@@ -9,7 +10,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
 	"github.com/yury-nazarov/shorturl/internal/app/storage"
 )
 
@@ -75,7 +75,6 @@ func TestURLService_URLHandler(t *testing.T) {
 				url: "/qqWW",
 			},
 			want: want {
-				//header: header{contentType: "text/plain; charset=utf-8"},
 				statusCode: http.StatusNotFound,
 			},
 		},
@@ -86,14 +85,14 @@ func TestURLService_URLHandler(t *testing.T) {
 				url: "/KJYUS",
 			},
 			want: want {
-				//header: header{contentType: "text/plain; charset=utf-8"},
 				statusCode: http.StatusBadRequest,
 			},
 		},
 	}
 
+	router := chi.NewRouter()
 	db := storage.New()
-	s := New("127.0.0.1", 8080, 5, db)
+	s := New("127.0.0.1", 8080, 5, db, router)
 
 	for _, tt := range tests{
 		t.Run(tt.name, func(t *testing.T){
@@ -113,7 +112,6 @@ func TestURLService_URLHandler(t *testing.T) {
 			resultBody, err := io.ReadAll(result.Body)
 			require.NoError(t, err)
 			assert.Equal(t, tt.want.body, string(resultBody))
-
 		})
 	}
 }
