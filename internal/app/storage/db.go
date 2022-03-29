@@ -1,4 +1,4 @@
-package url
+package storage
 
 import (
 	"fmt"
@@ -7,14 +7,19 @@ import (
 // URLDB - БД для URL
 type URLDB struct {
 	DB map[string]string
-	URLLength int
+}
+
+func New() *URLDB{
+	db := &URLDB{
+		DB: map[string]string{},
+	}
+	return db
 }
 
 // Add Добавляет новый url в БД
-func (u *URLDB) Add(longURL string) string {
-	shortPath := GenerateShortLink(longURL, u.URLLength)
+func (u *URLDB) Add(shortPath string, longURL string) {
 	u.DB[shortPath] = longURL
-	return shortPath
+	//return shortPath
 }
 
 // Get Достает из БД URL
