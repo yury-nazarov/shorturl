@@ -27,11 +27,13 @@ func (u *URLService) URLHandler(w http.ResponseWriter, r * http.Request) {
 
 		// Сокращаем url и добавляем в БД
 		originURL := string(bodyData)
+		// TODO: поправить нейминг переменных/функции
 		shortPath := ShortLink(originURL, u.URLLength)
 		u.DB.Add(shortPath, originURL)
 
 
 		// HTTP Response
+		w.Header().Add("Content-Type", "text/plain")
 		w.WriteHeader(http.StatusCreated)
 		// Подготавливаем сокращенный URL с адресом нашего сервиса, на пример: http://127.0.0.1:8080/qweEER
 		shortURL := fmt.Sprintf("%s://%s:%d/%s", "http", u.ListenAddress, u.Port, shortPath)
