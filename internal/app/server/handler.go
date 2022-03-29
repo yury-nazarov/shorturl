@@ -49,6 +49,7 @@ func (u *URLService) URLHandler(w http.ResponseWriter, r * http.Request) {
 	case "GET":
 		// Получаем path/urlID из URL для дальнейшего поиска по нему в БД
 		urlID := r.URL.Path[1:]
+		//urlID := chi.URLParam("urlID")
 		// Получаем оригинальный URL
 		originURL, err := u.DB.Get(urlID)
 		if err != nil {
