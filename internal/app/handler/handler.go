@@ -2,11 +2,12 @@ package handler
 
 import (
 	"fmt"
-	"github.com/go-chi/chi/v5"
-	"github.com/yury-nazarov/shorturl/internal/app/service"
 	"io"
 	"net/http"
 
+	"github.com/go-chi/chi/v5"
+
+	"github.com/yury-nazarov/shorturl/internal/app/service"
 	"github.com/yury-nazarov/shorturl/internal/app/storage"
 )
 
@@ -27,9 +28,7 @@ func (c *Controller) AddURLHandler(w http.ResponseWriter, r * http.Request) {
 	// Читаем присланые данные
 	bodyData, err := io.ReadAll(r.Body)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
 		w.WriteHeader(http.StatusInternalServerError)
-		return
 	}
 
 	// Проверяем пустой Body
@@ -44,16 +43,14 @@ func (c *Controller) AddURLHandler(w http.ResponseWriter, r * http.Request) {
 	c.db.Add(shortPath, originURL)
 
 	// HTTP Response
-	w.Header().Add("Content-Type", "text/plain")
-	w.WriteHeader(http.StatusCreated)
 	// Подготавливаем сокращенный URL с адресом нашего сервиса, на пример: http://127.0.0.1:8080/qweEER
 	shortURL := fmt.Sprintf("%s://%s/%s", "http", r.Host, shortPath)
-	// Отправляем и обрабатываем HTTP Response
+	w.Header().Add("Content-Type", "text/plain")
+	w.WriteHeader(http.StatusCreated)
 	_, err = w.Write([]byte(shortURL))
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
-
 }
 
 func (c *Controller) GetURLHandler(w http.ResponseWriter, r * http.Request) {

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/yury-nazarov/shorturl/internal/app/service"
 	"log"
 	"net/http"
 
@@ -9,6 +8,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 
 	"github.com/yury-nazarov/shorturl/internal/app/handler"
+	"github.com/yury-nazarov/shorturl/internal/app/service"
 	"github.com/yury-nazarov/shorturl/internal/app/storage"
 )
 
