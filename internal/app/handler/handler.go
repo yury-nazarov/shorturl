@@ -16,11 +16,10 @@ type Controller struct {
 	Port int
 }
 
-func NewController(db *storage.URLDB, urlLength int, ListenAddress string) *Controller {
+func NewController(db *storage.URLDB, urlLength int) *Controller {
 	c := &Controller{
 		db: db,
 		URLLength: urlLength,
-		ListenAddress: ListenAddress,
 	}
 	return c
 }

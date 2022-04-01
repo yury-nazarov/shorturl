@@ -12,6 +12,7 @@ import (
 )
 
 func main() {
+
 	router := chi.NewRouter()
 
 	// зададим встроенные middleware, чтобы улучшить стабильность приложения

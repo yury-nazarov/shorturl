@@ -19,7 +19,7 @@ import (
 func NewTestServer() *httptest.Server{
 	router := chi.NewRouter()
 	db := storage.New()
-	c := NewController(db, 5, "127.0.0.1:8080")
+	c := NewController(db, 5)
 
 
 	router.HandleFunc("/", c.DefaultHandler)
