@@ -26,7 +26,7 @@ func NewController(db *storage.URLDB, urlLength int) *Controller {
 }
 
 
-func (c *Controller) AddUrlHandler(w http.ResponseWriter, r * http.Request) {
+func (c *Controller) AddURLHandler(w http.ResponseWriter, r * http.Request) {
 	// Читаем присланые данные
 	bodyData, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -58,10 +58,10 @@ func (c *Controller) AddUrlHandler(w http.ResponseWriter, r * http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	return
+	//return
 }
 
-func (c *Controller) GetUrlHandler(w http.ResponseWriter, r * http.Request) {
+func (c *Controller) GetURLHandler(w http.ResponseWriter, r * http.Request) {
 
 	// Получаем path/urlID из URL для дальнейшего поиска по нему в БД
 	urlID := r.URL.Path[1:]
@@ -75,10 +75,10 @@ func (c *Controller) GetUrlHandler(w http.ResponseWriter, r * http.Request) {
 	// Отправляем ответ
 	w.Header().Set("Location", originURL)
 	w.WriteHeader(http.StatusTemporaryRedirect)
-	return
+	//return  // go vet test: redundant return statement. Why???
 }
 
 func (c *Controller) DefaultHandler(w http.ResponseWriter, r * http.Request) {
 	w.WriteHeader(http.StatusBadRequest)
-	return
+	//return  // go vet test: redundant return statement. Why???
 }

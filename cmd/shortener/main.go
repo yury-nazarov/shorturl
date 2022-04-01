@@ -23,9 +23,9 @@ func main() {
 	db := storage.New()
 	c := handler.NewController(db, 5)
 
-	router.Get("/{urlID}", c.GetUrlHandler)
-	router.Post("/", c.AddUrlHandler)
-	router.HandleFunc("/", c.AddUrlHandler)
+	router.HandleFunc("/", c.DefaultHandler)
+	router.Get("/{urlID}", c.GetURLHandler)
+	router.Post("/", c.AddURLHandler)
 
 	log.Fatal(http.ListenAndServe("127.0.0.1:8080", router))
 }

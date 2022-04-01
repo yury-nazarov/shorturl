@@ -22,9 +22,10 @@ func NewTestServer() *httptest.Server{
 	c := NewController(db, 5)
 
 
-	router.Get("/{urlID}", c.GetUrlHandler)
-	router.Post("/", c.AddUrlHandler)
-	router.HandleFunc("/", c.AddUrlHandler)
+	router.HandleFunc("/", c.DefaultHandler)
+	router.Get("/{urlID}", c.GetURLHandler)
+	router.Post("/", c.AddURLHandler)
+
 
 
 	return httptest.NewServer(router)
