@@ -97,11 +97,12 @@ func TestController_AddUrlHandler(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			url := fmt.Sprintf("%s%s", ts.URL, tt.request.url)
 			resp, body := testRequest(t, tt.request.httpMethod, url, tt.request.body)
-			defer resp.Body.Close() // go vet test from github
+			defer resp.Body.Close() // go vet test
 			assert.Equal(t, tt.want.statusCode, resp.StatusCode)
-			// При добавлении URL ручка возвращает ответ в виде короткой ссылки: "http://127.0.0.1:49821/KJYUS"
+
+			// При добавлении URL ручка возвращает ответ в виде короткой ссылки с адресом сервиса: "http://127.0.0.1:49821/KJYUS"
 			// Т.к. тестовый сервер запускается на произвольном порту, я не могу захардкодить конкретный URL.
-			// Те самым проверяем, если ожидаемый body не пустой, то подставляем hostname:port
+			// Тем самым проверяем, если ожидаемый body не пустой, то подставляем hostname:port сервиса
 			if len(tt.want.body) > 0 {
 				assert.Equal(t, fmt.Sprintf("%s%s", ts.URL, tt.want.body),  body)
 			}else {

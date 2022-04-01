@@ -10,20 +10,19 @@ import (
 )
 
 type Controller struct {
-	db *storage.URLDB 	// TODO: Заменить на интерфейс
+	db *storage.InMemoryDB 	// TODO: Заменить на интерфейс
 	URLLength int
 	ListenAddress string
 	Port int
 }
 
-func NewController(db *storage.URLDB, urlLength int) *Controller {
+func NewController(db *storage.InMemoryDB, urlLength int) *Controller {
 	c := &Controller{
 		db: db,
 		URLLength: urlLength,
 	}
 	return c
 }
-
 
 func (c *Controller) AddURLHandler(w http.ResponseWriter, r * http.Request) {
 	// Читаем присланые данные
@@ -49,7 +48,6 @@ func (c *Controller) AddURLHandler(w http.ResponseWriter, r * http.Request) {
 	w.Header().Add("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusCreated)
 	// Подготавливаем сокращенный URL с адресом нашего сервиса, на пример: http://127.0.0.1:8080/qweEER
-	//shortURL := fmt.Sprintf("%s://%s:%d/%s", "http", c.ListenAddress, c.Port, shortPath)
 	shortURL := fmt.Sprintf("%s://%s/%s", "http", r.Host, shortPath)
 	// Отправляем и обрабатываем HTTP Response
 	_, err = w.Write([]byte(shortURL))
