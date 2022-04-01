@@ -19,7 +19,7 @@ import (
 
 func NewTestServer() *httptest.Server{
 	router := chi.NewRouter()
-	db := storage.New()
+	db := storage.NewInMemoryDB()
 	lc := service.NewLinkCompressor(5)
 	c := NewController(db, lc)
 

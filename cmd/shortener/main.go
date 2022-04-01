@@ -22,7 +22,7 @@ func main() {
 	router.Use(middleware.Logger)
 	router.Use(middleware.Recoverer)
 
-	db := storage.New()
+	db := storage.NewInMemoryDB()
 	lc := service.NewLinkCompressor(5)
 	c := handler.NewController(db, lc)
 

@@ -9,7 +9,7 @@ type InMemoryDB struct {
 	DB map[string]string
 }
 
-func New() *InMemoryDB{
+func NewInMemoryDB() *InMemoryDB{
 	db := &InMemoryDB{
 		DB: map[string]string{},
 	}
