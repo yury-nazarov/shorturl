@@ -1,17 +1,19 @@
 package main
 
 import (
+	"github.com/yury-nazarov/shorturl/internal/app/handler"
 	"log"
+	"net/http"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 
-	"github.com/yury-nazarov/shorturl/internal/app/server"
 	"github.com/yury-nazarov/shorturl/internal/app/storage"
 )
 
 func main() {
 	router := chi.NewRouter()
+
 	// зададим встроенные middleware, чтобы улучшить стабильность приложения
 	router.Use(middleware.RequestID)
 	router.Use(middleware.RealIP)
@@ -19,12 +21,12 @@ func main() {
 	router.Use(middleware.Recoverer)
 
 	db := storage.New()
-	s := server.New("127.0.0.1", 8080, 5, db, router)
+	c := handler.NewController(db, 5)
 
-	router.HandleFunc("/{urlID}", s.URLHandler)
-	router.HandleFunc("/", s.URLHandler)
+	router.Get("/{urlID}", c.GetUrlHandler)
+	router.Post("/", c.AddUrlHandler)
+	router.HandleFunc("/", c.AddUrlHandler)
 
-
-	log.Fatal(s.Bind.ListenAndServe())
+	log.Fatal(http.ListenAndServe("127.0.0.1:8080", router))
 }
 
