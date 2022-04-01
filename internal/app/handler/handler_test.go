@@ -58,7 +58,6 @@ func TestController_AddUrlHandler(t *testing.T) {
 		body string
 	}
 	type want struct {
-		header header
 		statusCode int
 		body string
 	}
@@ -75,7 +74,6 @@ func TestController_AddUrlHandler(t *testing.T) {
 				body:       "https://www.youtube.com/watch?v=09nmlZjxRFs",
 			},
 			want: want{
-				header:     header{contentType: "text/plain"},
 				statusCode: 201,
 				body:       "http://127.0.0.1:8080/KJYUS",
 			},
@@ -99,6 +97,7 @@ func TestController_AddUrlHandler(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			url := fmt.Sprintf("%s%s", ts.URL, tt.request.url)
 			resp, body := testRequest(t, tt.request.httpMethod, url, tt.request.body)
+			defer resp.Body.Close() // go vet test from github
 			assert.Equal(t, tt.want.statusCode, resp.StatusCode)
 			assert.Equal(t, tt.want.body, body)
 		})
@@ -169,6 +168,7 @@ func TestController_GetUrlHandler(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			url := fmt.Sprintf("%s%s", ts.URL, tt.request.url)
 			resp, _ := testRequest(t, tt.request.httpMethod, url, tt.request.body)
+			defer resp.Body.Close() // go vet test from github
 			assert.Equal(t, tt.want.statusCode, resp.StatusCode)
 		})
 	}
@@ -213,6 +213,7 @@ func TestController_DefaultHandler(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T){
 			url := fmt.Sprintf("%s%s", ts.URL, tt.request.url)
 			resp, body := testRequest(t, tt.request.httpMethod, url, tt.request.body)
+			defer resp.Body.Close() // go vet test from github
 			assert.Equal(t, tt.want.statusCode, resp.StatusCode)
 			assert.Equal(t, tt.want.body, body)
 		})
