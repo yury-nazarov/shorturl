@@ -2,6 +2,7 @@ package handler
 
 import (
 	"fmt"
+	"github.com/yury-nazarov/shorturl/internal/app/service"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -19,7 +20,8 @@ import (
 func NewTestServer() *httptest.Server{
 	router := chi.NewRouter()
 	db := storage.New()
-	c := NewController(db, 5)
+	lc := service.NewLinkCompressor(5)
+	c := NewController(db, lc)
 
 
 	router.HandleFunc("/", c.DefaultHandler)

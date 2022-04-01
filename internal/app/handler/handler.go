@@ -3,6 +3,7 @@ package handler
 import (
 	"fmt"
 	"github.com/go-chi/chi/v5"
+	"github.com/yury-nazarov/shorturl/internal/app/service"
 	"io"
 	"net/http"
 
@@ -10,16 +11,14 @@ import (
 )
 
 type Controller struct {
-	db *storage.InMemoryDB 	// TODO: Заменить на интерфейс
-	URLLength int
-	ListenAddress string
-	Port int
+	db *storage.InMemoryDB
+	lc service.LinkCompressor
 }
 
-func NewController(db *storage.InMemoryDB, urlLength int) *Controller {
+func NewController(db *storage.InMemoryDB,  lc service.LinkCompressor) *Controller {
 	c := &Controller{
 		db: db,
-		URLLength: urlLength,
+		lc: lc,
 	}
 	return c
 }
@@ -41,7 +40,7 @@ func (c *Controller) AddURLHandler(w http.ResponseWriter, r * http.Request) {
 
 	// Сокращаем url и добавляем в БД
 	originURL := string(bodyData)
-	shortPath := ShortPath(originURL, c.URLLength)
+	shortPath := c.lc.ShortPath(originURL)
 	c.db.Add(shortPath, originURL)
 
 	// HTTP Response

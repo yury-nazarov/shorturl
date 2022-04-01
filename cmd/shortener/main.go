@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/yury-nazarov/shorturl/internal/app/service"
 	"log"
 	"net/http"
 
@@ -22,7 +23,8 @@ func main() {
 	router.Use(middleware.Recoverer)
 
 	db := storage.New()
-	c := handler.NewController(db, 5)
+	lc := service.NewLinkCompressor(5)
+	c := handler.NewController(db, lc)
 
 	router.HandleFunc("/", c.DefaultHandler)
 	router.Get("/{urlID}", c.GetURLHandler)
