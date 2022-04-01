@@ -2,6 +2,7 @@ package handler
 
 import (
 	"fmt"
+	"github.com/go-chi/chi/v5"
 	"io"
 	"net/http"
 
@@ -15,12 +16,11 @@ type Controller struct {
 	Port int
 }
 
-func NewController(db *storage.URLDB, urlLength int) *Controller {
+func NewController(db *storage.URLDB, urlLength int, ListenAddress string) *Controller {
 	c := &Controller{
 		db: db,
 		URLLength: urlLength,
-		ListenAddress: "127.0.0.1", // TODO адрес и порт брать из рантайма!
-		Port: 8080,
+		ListenAddress: ListenAddress,
 	}
 	return c
 }
@@ -31,6 +31,7 @@ func (c *Controller) AddURLHandler(w http.ResponseWriter, r * http.Request) {
 	bodyData, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
@@ -45,40 +46,35 @@ func (c *Controller) AddURLHandler(w http.ResponseWriter, r * http.Request) {
 	shortPath := ShortPath(originURL, c.URLLength)
 	c.db.Add(shortPath, originURL)
 
-
 	// HTTP Response
 	w.Header().Add("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusCreated)
 	// Подготавливаем сокращенный URL с адресом нашего сервиса, на пример: http://127.0.0.1:8080/qweEER
-	shortURL := fmt.Sprintf("%s://%s:%d/%s", "http", c.ListenAddress, c.Port, shortPath)
+	//shortURL := fmt.Sprintf("%s://%s:%d/%s", "http", c.ListenAddress, c.Port, shortPath)
+	shortURL := fmt.Sprintf("%s://%s/%s", "http", r.Host, shortPath)
 	// Отправляем и обрабатываем HTTP Response
 	_, err = w.Write([]byte(shortURL))
 	if err != nil {
-		//http.Error(w, err.Error(), http.StatusInternalServerError)
 		w.WriteHeader(http.StatusInternalServerError)
-		return
 	}
-	//return
+
 }
 
 func (c *Controller) GetURLHandler(w http.ResponseWriter, r * http.Request) {
 
-	// Получаем path/urlID из URL для дальнейшего поиска по нему в БД
-	urlID := r.URL.Path[1:]
-	//urlID := chi.URLParam("urlID")
-	// Получаем оригинальный URL
+	// Получаем urlID из URL path для дальнейшего поиска по нему в БД
+	urlID := chi.URLParam(r, "urlID")
+
+	// Получаем оригинальный URL из БД
 	originURL, err := c.db.Get(urlID)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
-		return
 	}
 	// Отправляем ответ
 	w.Header().Set("Location", originURL)
 	w.WriteHeader(http.StatusTemporaryRedirect)
-	//return  // go vet test: redundant return statement. Why???
 }
 
 func (c *Controller) DefaultHandler(w http.ResponseWriter, r * http.Request) {
 	w.WriteHeader(http.StatusBadRequest)
-	//return  // go vet test: redundant return statement. Why???
 }

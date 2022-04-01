@@ -19,13 +19,12 @@ import (
 func NewTestServer() *httptest.Server{
 	router := chi.NewRouter()
 	db := storage.New()
-	c := NewController(db, 5)
+	c := NewController(db, 5, "127.0.0.1:8080")
 
 
 	router.HandleFunc("/", c.DefaultHandler)
 	router.Get("/{urlID}", c.GetURLHandler)
 	router.Post("/", c.AddURLHandler)
-
 
 
 	return httptest.NewServer(router)
@@ -76,7 +75,7 @@ func TestController_AddUrlHandler(t *testing.T) {
 			},
 			want: want{
 				statusCode: 201,
-				body:       "http://127.0.0.1:8080/KJYUS",
+				body: "/KJYUS",
 			},
 		},
 		{
@@ -100,7 +99,14 @@ func TestController_AddUrlHandler(t *testing.T) {
 			resp, body := testRequest(t, tt.request.httpMethod, url, tt.request.body)
 			defer resp.Body.Close() // go vet test from github
 			assert.Equal(t, tt.want.statusCode, resp.StatusCode)
-			assert.Equal(t, tt.want.body, body)
+			// При добавлении URL ручка возвращает ответ в виде короткой ссылки: "http://127.0.0.1:49821/KJYUS"
+			// Т.к. тестовый сервер запускается на произвольном порту, я не могу захардкодить конкретный URL.
+			// Те самым проверяем, если ожидаемый body не пустой, то подставляем hostname:port
+			if len(tt.want.body) > 0 {
+				assert.Equal(t, fmt.Sprintf("%s%s", ts.URL, tt.want.body),  body)
+			}else {
+				assert.Equal(t, tt.want.body,  body)
+			}
 		})
 	}
 }
