@@ -1,13 +1,13 @@
 package main
 
 import (
-	"github.com/yury-nazarov/shorturl/internal/app/handler"
 	"log"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 
+	"github.com/yury-nazarov/shorturl/internal/app/handler"
 	"github.com/yury-nazarov/shorturl/internal/app/storage"
 )
 
