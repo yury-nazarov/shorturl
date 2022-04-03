@@ -35,7 +35,13 @@ func testRequest(t *testing.T,  method, path string, body string) (*http.Respons
 	req, err := http.NewRequest(method, path, strings.NewReader(body))
 	require.NoError(t, err)
 
-	resp, err := http.DefaultClient.Do(req)
+	// Убираем редирект в HTTP клиенте, для коректного тестирования HTTP хендлеров c Header Location
+	client := http.Client{
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	}
+	resp, err := client.Do(req)
 	require.NoError(t, err)
 
 	respBody, err := ioutil.ReadAll(resp.Body)
@@ -155,9 +161,9 @@ func TestController_GetUrlHandler(t *testing.T) {
 				url: "/KJYUS",
 			},
 			want: want {
-				//header: header{locations: "https://www.youtube.com/watch?v=09nmlZjxRFs"},
-				//statusCode: http.StatusTemporaryRedirect,
-				statusCode: http.StatusOK,
+				header: header{locations: "https://www.youtube.com/watch?v=09nmlZjxRFs"},
+				statusCode: http.StatusTemporaryRedirect,
+				//statusCode: http.StatusOK,
 			},
 		},
 		{
@@ -179,6 +185,9 @@ func TestController_GetUrlHandler(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			url := fmt.Sprintf("%s%s", ts.URL, tt.request.url)
 			resp, _ := testRequest(t, tt.request.httpMethod, url, tt.request.body)
+			//client.CheckRedirect = func(req *Request, via []*Request) error{
+			//	return nil
+			//}
 			defer resp.Body.Close() // go vet test from github
 			assert.Equal(t, tt.want.statusCode, resp.StatusCode)
 		})
