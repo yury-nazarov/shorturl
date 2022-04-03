@@ -2,7 +2,6 @@ package handler
 
 import (
 	"fmt"
-	"github.com/yury-nazarov/shorturl/internal/app/service"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -13,21 +12,19 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/yury-nazarov/shorturl/internal/app/service"
 	"github.com/yury-nazarov/shorturl/internal/app/storage"
 )
-
 
 func NewTestServer() *httptest.Server{
 	router := chi.NewRouter()
 	db := storage.NewInMemoryDB()
-	lc := service.NewLinkCompressor(5)
+	lc := service.NewLinkCompressor(5, "")
 	c := NewController(db, lc)
-
 
 	router.HandleFunc("/", c.DefaultHandler)
 	router.Get("/{urlID}", c.GetURLHandler)
 	router.Post("/", c.AddURLHandler)
-
 
 	return httptest.NewServer(router)
 }
@@ -102,13 +99,17 @@ func TestController_AddUrlHandler(t *testing.T) {
 			defer resp.Body.Close() // go vet test
 			assert.Equal(t, tt.want.statusCode, resp.StatusCode)
 
-			// При добавлении URL ручка возвращает ответ в виде короткой ссылки с адресом сервиса: "http://127.0.0.1:49821/KJYUS"
-			// Т.к. тестовый сервер запускается на произвольном порту, я не могу захардкодить конкретный URL.
-			// Тем самым проверяем, если ожидаемый body не пустой, то подставляем hostname:port сервиса
+			// При добавлении URL сервис возвращает ответ в виде короткой ссылки с адресом сервиса: "http://{ SERVICE_NAME }/KJYUS"
+			// Предпосылки специфичные для тест кейсов:
+			//		1. Тестовый сервер запускается на произвольном порту: http://127.0.0.1:XXXXX,
+			//		   я не могу захардкодить конкретный URL, передав его в конструктор NewLinkCompressor().
+			//		2. Не могу использовать локальный DNS для поддержки доменного имени для сервиса, в рамках текущих тесткейсов.
+			// Тем самым, проверяем, если ожидаемый body не пустой (т.е. должен содержать URL в ответе),
+			// то подставляем hostname:port тестового сервиса для подготовки ожидаемого клиентов URL: "http://{ SERVICE_NAME }/KJYUS"
 			if len(tt.want.body) > 0 {
-				assert.Equal(t, fmt.Sprintf("%s%s", ts.URL, tt.want.body),  body)
-			}else {
-				assert.Equal(t, tt.want.body,  body)
+				serviceResponse := fmt.Sprintf("%s%s", ts.URL, body)
+				wantURL := fmt.Sprintf("%s%s", ts.URL, tt.want.body)
+				assert.Equal(t, wantURL,  serviceResponse)
 			}
 		})
 	}

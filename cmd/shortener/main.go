@@ -23,7 +23,7 @@ func main() {
 	router.Use(middleware.Recoverer)
 
 	db := storage.NewInMemoryDB()
-	lc := service.NewLinkCompressor(5)
+	lc := service.NewLinkCompressor(5,  "http://127.0.0.1:8080")
 	c := handler.NewController(db, lc)
 
 	router.HandleFunc("/", c.DefaultHandler)

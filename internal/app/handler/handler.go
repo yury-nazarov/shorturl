@@ -1,11 +1,8 @@
 package handler
 
 import (
-	"fmt"
 	"io"
 	"net/http"
-
-	"github.com/go-chi/chi/v5"
 
 	"github.com/yury-nazarov/shorturl/internal/app/service"
 	"github.com/yury-nazarov/shorturl/internal/app/storage"
@@ -39,12 +36,10 @@ func (c *Controller) AddURLHandler(w http.ResponseWriter, r * http.Request) {
 
 	// Сокращаем url и добавляем в БД
 	originURL := string(bodyData)
-	shortPath := c.lc.ShortPath(originURL)
-	c.db.Add(shortPath, originURL)
+	shortURL := c.lc.SortURL(originURL)
+	c.db.Add(shortURL, originURL)
 
 	// HTTP Response
-	// Подготавливаем сокращенный URL с адресом нашего сервиса, на пример: http://127.0.0.1:8080/qweEER
-	shortURL := fmt.Sprintf("%s://%s/%s", "http", r.Host, shortPath)
 	w.Header().Add("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusCreated)
 	_, err = w.Write([]byte(shortURL))
@@ -55,11 +50,8 @@ func (c *Controller) AddURLHandler(w http.ResponseWriter, r * http.Request) {
 
 func (c *Controller) GetURLHandler(w http.ResponseWriter, r * http.Request) {
 
-	// Получаем urlID из URL path для дальнейшего поиска по нему в БД
-	urlID := chi.URLParam(r, "urlID")
-
 	// Получаем оригинальный URL из БД
-	originURL, err := c.db.Get(urlID)
+	originURL, err := c.db.Get(r.URL.String())
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 	}
