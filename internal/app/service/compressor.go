@@ -10,14 +10,14 @@ import (
 
 type LinkCompressor struct {
 	urlLength int
-	serviceName string
+	ServiceName string
 }
 
 // NewLinkCompressor - объект содержит в себе все необходимое для подготови короткого URL
 func NewLinkCompressor(urlLength int, urlAnswer string) LinkCompressor{
 	lc := LinkCompressor{
 		urlLength: urlLength,
-		serviceName: urlAnswer,
+		ServiceName: urlAnswer,
 	}
 	return lc
 }
@@ -25,7 +25,7 @@ func NewLinkCompressor(urlLength int, urlAnswer string) LinkCompressor{
 // SortURL - собирает сокращенный URL
 func (l *LinkCompressor) SortURL(originalLink string) string {
 	path := l.shortPath(originalLink)
-	url := fmt.Sprintf("%s/%s", l.serviceName, path[:l.urlLength])
+	url := fmt.Sprintf("%s/%s", l.ServiceName, path[:l.urlLength])
 	return url
 }
 

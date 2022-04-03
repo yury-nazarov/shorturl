@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 
@@ -51,7 +52,8 @@ func (c *Controller) AddURLHandler(w http.ResponseWriter, r * http.Request) {
 func (c *Controller) GetURLHandler(w http.ResponseWriter, r * http.Request) {
 
 	// Получаем оригинальный URL из БД
-	originURL, err := c.db.Get(r.URL.String())
+	shortURL := fmt.Sprintf("%s%s", c.lc.ServiceName, r.URL.Path)
+	originURL, err := c.db.Get(shortURL)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 	}
