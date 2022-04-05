@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -14,12 +15,58 @@ type Controller struct {
 	lc service.LinkCompressor
 }
 
+type URL struct {
+	Request 	string `json:"url,omitempty"` 	 	// Не учитываем поле при Marshal
+	Response  	string `json:"result,omitempty"`	// Не учитываем поле при Unmarshal
+}
+
+
 func NewController(db *storage.InMemoryDB,  lc service.LinkCompressor) *Controller {
 	c := &Controller{
 		db: db,
 		lc: lc,
 	}
 	return c
+}
+
+func (c *Controller) AddJSONURLHandler(w http.ResponseWriter, r *http.Request) {
+	// Читаем присланые данные
+	bodyData, err := io.ReadAll(r.Body)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	// Проверяем пустой Body
+	if len(bodyData) == 0 {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	// Unmarshal JSON
+	var url URL
+	if err = json.Unmarshal(bodyData, &url); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+	}
+
+	// Сокращаем url и добавляем в БД
+	shortURL := c.lc.SortURL(url.Request)
+	c.db.Add(shortURL, url.Request)
+
+	// Сериализуем контент
+	jsonShortURL, err := json.Marshal(URL{Response: shortURL})
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	// Указываем заголовки в зависмости от типа контента
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+
+	// HTTP Response
+	_, err = w.Write(jsonShortURL)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 }
 
 func (c *Controller) AddURLHandler(w http.ResponseWriter, r * http.Request) {
