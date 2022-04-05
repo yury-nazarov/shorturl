@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -14,6 +15,13 @@ import (
 
 func main() {
 
+	// Получаем конфигурацию из переменных окружения
+	serverAddress := os.Getenv("SERVER_ADDRESS")
+	baseURL := os.Getenv("BASE_URL")
+	if len(serverAddress) == 0 || len(baseURL) == 0 {
+		log.Fatal("Please set environment variables:\n export SERVER_ADDRESS=127.0.0.1:8080\n export BASE_URL=http://127.0.0.1:8080\n")
+	}
+
 	r := chi.NewRouter()
 
 	// зададим встроенные middleware, чтобы улучшить стабильность приложения
@@ -23,7 +31,7 @@ func main() {
 	r.Use(middleware.Recoverer)
 
 	db := storage.NewInMemoryDB()
-	lc := service.NewLinkCompressor(5,  "http://127.0.0.1:8080")
+	lc := service.NewLinkCompressor(5,  baseURL)
 	c := handler.NewController(db, lc)
 
 
@@ -32,6 +40,6 @@ func main() {
 	r.Get("/{urlID}", c.GetURLHandler)
 	r.Post("/", c.AddURLHandler)
 
-	log.Fatal(http.ListenAndServe("127.0.0.1:8080", r))
+	log.Fatal(http.ListenAndServe(serverAddress, r))
 }
 
