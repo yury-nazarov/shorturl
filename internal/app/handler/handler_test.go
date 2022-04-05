@@ -3,6 +3,8 @@ package handler
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -16,29 +18,34 @@ import (
 	"github.com/yury-nazarov/shorturl/internal/app/storage"
 )
 
+
+// NewTestServer - конфигурируем тестовый сервер,
 func NewTestServer() *httptest.Server{
+	ServiceAddress := "127.0.0.1:8080"
+
 	r := chi.NewRouter()
 	db := storage.NewInMemoryDB()
-	lc := service.NewLinkCompressor(5, "")
+	lc := service.NewLinkCompressor(5, fmt.Sprintf("http://%s", ServiceAddress))
 	c := NewController(db, lc)
 
 	// Handler routing
-	r.Route("/api", func(r chi.Router){
-		r.Post("/shorten", c.AddURLHandler)
-	})
-	r.Route("/{urlID}", func(r chi.Router) {
-		r.Get("/", c.GetURLHandler)
-	})
-	r.Route("/", func(r chi.Router){
-		r.HandleFunc("/", c.DefaultHandler)
-		r.Post("/", c.AddURLHandler)
-	})
+	r.HandleFunc("/", c.DefaultHandler)
+	r.Post("/api/shorten", c.AddJSONURLHandler)
+	r.Get("/{urlID}", c.GetURLHandler)
+	r.Post("/", c.AddURLHandler)
 
-	//router.HandleFunc("/", c.DefaultHandler)
-	//router.Get("/{urlID}", c.GetURLHandler)
-	//router.Post("/", c.AddURLHandler)
+	// Настраиваем адрес/порт который будут слушать тестовый сервер
+	listener, err := net.Listen("tcp", ServiceAddress)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	return httptest.NewServer(r)
+	ts := httptest.NewUnstartedServer(r)
+	// Закрываем созданый httptest.NewUnstartedServer Listener и назначаем подготовленный нами ранее
+	// В тесткейсе нужно будет запустить и остановить сервер: ts.Start(), ts.Close()
+	ts.Listener.Close()
+	ts.Listener = listener
+	return ts
 }
 
 // Функция HTTP клиент для тестовых запросов
@@ -64,20 +71,26 @@ func testRequest(t *testing.T,  method, path string, body string) (*http.Respons
 	return resp, string(respBody)
 }
 
-func TestController_AddUrlHandler(t *testing.T) {
+func TestController_AddJSONURLHandler(t *testing.T) {
+	// Вспомогательная структура, описывает HTTP Headers для структур: request и/или want
 	type header struct {
 		contentType string
 		locations string
 	}
+	// Параметры для настройки тестового HTTP Request
 	type request struct {
 		httpMethod string
 		url string
+		header header
 		body string
 	}
+	// Ожидаемый ответ сервера
 	type want struct {
 		statusCode int
+		header header
 		body string
 	}
+	// Список тесткейсов
 	tests := []struct{
 		name string
 		request request
@@ -87,67 +100,136 @@ func TestController_AddUrlHandler(t *testing.T) {
 			name: "test_1: POST: Success request",
 			request: request{
 				httpMethod: http.MethodPost,
-				url:        "/",
-				body:       "https://www.youtube.com/watch?v=09nmlZjxRFs",
+				url:        "http://127.0.0.1:8080/api/shorten",
+				body:       `{"url":"https://www.youtube.com/watch?v=09nmlZjxRFs"}`,
+				header: header{
+					contentType: "application/json",
+				},
 			},
 			want: want{
 				statusCode: 201,
-				body: "/KJYUS",
+				body:       `{"result":"http://127.0.0.1:8080/KJYUS"}`,
+				header: header{
+					contentType: "application/json",
+				},
+			},
+		},
+		{
+			name: "test_1: POST: Empty request",
+			request: request{
+				httpMethod: http.MethodPost,
+				url:        "http://127.0.0.1:8080/api/shorten",
+				body:       "",
+				header: header{
+					contentType: "application/json",
+				},
+			},
+			want: want{
+				statusCode: http.StatusBadRequest,
+			},
+		},
+	}
+
+	ts := NewTestServer()
+	ts.Start()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			resp, body := testRequest(t, tt.request.httpMethod, tt.request.url, tt.request.body)
+			defer resp.Body.Close() // go vet test
+
+			assert.Equal(t, tt.want.statusCode, resp.StatusCode)
+			assert.Equal(t, tt.want.header.contentType, resp.Header.Get("Content-Type"))
+			assert.Equal(t, tt.want.body, body)
+		})
+	}
+	ts.Close()
+}
+
+func TestController_AddUrlHandler(t *testing.T) {
+	// Вспомогательная структура, описывает HTTP Headers для структур: request и/или want
+	type header struct {
+		contentType string
+		locations string
+	}
+	// Параметры для настройки тестового HTTP Request
+	type request struct {
+		httpMethod string
+		url string
+		body string
+	}
+	// Ожидаемый ответ сервера
+	type want struct {
+		statusCode int
+		header header
+		body string
+	}
+	// Список тесткейсов
+	tests := []struct{
+		name string
+		request request
+		want want
+	}{
+		{
+			name: "test_1: POST: Success request",
+			request: request{
+				httpMethod: http.MethodPost,
+				url:        "http://127.0.0.1:8080",
+				body:       "https://www.youtube.com/watch?v=09nmlZjxRFs",
+			},
+			want: want{
+				statusCode: http.StatusCreated,
+				body: "http://127.0.0.1:8080/KJYUS",
+				header: header{contentType: "text/plain"},
+
 			},
 		},
 		{
 			name: "test_2: POST: Empty body",
 			request: request{
 				httpMethod: http.MethodPost,
-				url: "/",
+				url: "http://127.0.0.1:8080",
+				body: "",
 			},
 			want: want {
 				statusCode: http.StatusBadRequest,
-				body: "",
 			},
 		},
 	}
 
 	ts := NewTestServer()
-
+	ts.Start()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			url := fmt.Sprintf("%s%s", ts.URL, tt.request.url)
-			resp, body := testRequest(t, tt.request.httpMethod, url, tt.request.body)
+			resp, body := testRequest(t, tt.request.httpMethod, tt.request.url, tt.request.body)
 			defer resp.Body.Close() // go vet test
-			assert.Equal(t, tt.want.statusCode, resp.StatusCode)
 
-			// При добавлении URL сервис возвращает ответ в виде короткой ссылки с адресом сервиса: "http://{ SERVICE_NAME }/KJYUS"
-			// Предпосылки специфичные для тест кейсов:
-			//		1. Тестовый сервер запускается на произвольном порту: http://127.0.0.1:XXXXX,
-			//		   я не могу захардкодить конкретный URL, передав его в конструктор NewLinkCompressor().
-			//		2. Не могу использовать локальный DNS для поддержки доменного имени для сервиса, в рамках текущих тесткейсов.
-			// Тем самым, проверяем, если ожидаемый body не пустой (т.е. должен содержать URL в ответе),
-			// то подставляем hostname:port тестового сервиса для подготовки ожидаемого клиентов URL: "http://{ SERVICE_NAME }/KJYUS"
-			if len(tt.want.body) > 0 {
-				serviceResponse := fmt.Sprintf("%s%s", ts.URL, body)
-				wantURL := fmt.Sprintf("%s%s", ts.URL, tt.want.body)
-				assert.Equal(t, wantURL,  serviceResponse)
-			}
+			assert.Equal(t, tt.want.statusCode, resp.StatusCode)
+			assert.Equal(t, tt.want.header.contentType, resp.Header.Get("Content-Type"))
+			assert.Equal(t, tt.want.body,  body)
 		})
 	}
+	ts.Close()
 }
 
 func TestController_GetUrlHandler(t *testing.T) {
+	// Вспомогательная структура, описывает HTTP Headers для структур: request и/или want
 	type header struct {
 		contentType string
 		locations string
 	}
+	// Параметры для настройки тестового HTTP Request
 	type request struct {
 		httpMethod string
 		url string
 		body string
 	}
+	// Ожидаемый ответ сервера
 	type want struct {
 		header header
 		statusCode int
 		body string
 	}
+	// Список тесткейсов
 	tests := []struct{
 		name string
 		request request
@@ -157,7 +239,7 @@ func TestController_GetUrlHandler(t *testing.T) {
 			name: "Prepare: Add test url into DB",
 			request: request{
 				httpMethod: http.MethodPost,
-				url:        "/",
+				url:        "http://127.0.0.1:8080",
 				body:       "https://www.youtube.com/watch?v=09nmlZjxRFs",
 			},
 			want: want{
@@ -170,19 +252,18 @@ func TestController_GetUrlHandler(t *testing.T) {
 			name: "test_1: GET: Success short url from test #1",
 			request: request{
 				httpMethod: http.MethodGet,
-				url: "/KJYUS",
+				url: "http://127.0.0.1:8080/KJYUS",
 			},
 			want: want {
 				header: header{locations: "https://www.youtube.com/watch?v=09nmlZjxRFs"},
 				statusCode: http.StatusTemporaryRedirect,
-				//statusCode: http.StatusOK,
 			},
 		},
 		{
 			name: "test_2: GET: Short url not found",
 			request: request{
 				httpMethod: http.MethodGet,
-				url: "/qqWW",
+				url: "http://127.0.0.1:8080/qqWW",
 			},
 			want: want {
 				statusCode: http.StatusNotFound,
@@ -191,47 +272,59 @@ func TestController_GetUrlHandler(t *testing.T) {
 	}
 
 	ts := NewTestServer()
-
-
+	ts.Start()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			url := fmt.Sprintf("%s%s", ts.URL, tt.request.url)
-			resp, _ := testRequest(t, tt.request.httpMethod, url, tt.request.body)
-			//client.CheckRedirect = func(req *Request, via []*Request) error{
-			//	return nil
-			//}
+			resp, _ := testRequest(t, tt.request.httpMethod, tt.request.url, tt.request.body)
 			defer resp.Body.Close() // go vet test from github
+
 			assert.Equal(t, tt.want.statusCode, resp.StatusCode)
+			assert.Equal(t, tt.want.header.locations, resp.Header.Get("Location"))
 		})
 	}
+	ts.Close()
 }
 
 
 func TestController_DefaultHandler(t *testing.T) {
+	// Вспомогательная структура, описывает HTTP Headers для структур: request и/или want
 	type header struct {
 		contentType string
 		locations string
 	}
+	// Параметры для настройки тестового HTTP Request
 	type request struct {
 		httpMethod string
 		url string
 		body string
 	}
+	// Ожидаемый ответ сервера
 	type want struct {
 		header header
 		statusCode int
 		body string
 	}
+	// Список тесткейсов
 	tests := []struct{
 		name string
 		request request
 		want want
 	}{
 		{
-			name: "test_1: Default: Some other method without POST, GET",
+			name: "test_1: Default: HTTP PUT request",
 			request: request{
 				httpMethod: http.MethodPut,
-				url: "/",
+				url: "http://127.0.0.1:8080",
+			},
+			want: want {
+				statusCode: http.StatusBadRequest,
+			},
+		},
+		{
+			name: "test_1: Default: HTTP Delete request",
+			request: request{
+				httpMethod: http.MethodDelete,
+				url: "http://127.0.0.1:8080",
 			},
 			want: want {
 				statusCode: http.StatusBadRequest,
@@ -240,15 +333,16 @@ func TestController_DefaultHandler(t *testing.T) {
 	}
 
 	ts := NewTestServer()
-
+	ts.Start()
 	for _, tt := range tests{
 		t.Run(tt.name, func(t *testing.T){
-			url := fmt.Sprintf("%s%s", ts.URL, tt.request.url)
-			resp, body := testRequest(t, tt.request.httpMethod, url, tt.request.body)
+			resp, body := testRequest(t, tt.request.httpMethod, tt.request.url, tt.request.body)
 			defer resp.Body.Close() // go vet test from github
+
 			assert.Equal(t, tt.want.statusCode, resp.StatusCode)
 			assert.Equal(t, tt.want.body, body)
 		})
 	}
+	ts.Close()
 }
 
