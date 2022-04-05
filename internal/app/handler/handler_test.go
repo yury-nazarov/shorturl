@@ -17,16 +17,28 @@ import (
 )
 
 func NewTestServer() *httptest.Server{
-	router := chi.NewRouter()
+	r := chi.NewRouter()
 	db := storage.NewInMemoryDB()
 	lc := service.NewLinkCompressor(5, "")
 	c := NewController(db, lc)
 
-	router.HandleFunc("/", c.DefaultHandler)
-	router.Get("/{urlID}", c.GetURLHandler)
-	router.Post("/", c.AddURLHandler)
+	// Handler routing
+	r.Route("/api", func(r chi.Router){
+		r.Post("/shorten", c.AddURLHandler)
+	})
+	r.Route("/{urlID}", func(r chi.Router) {
+		r.Get("/", c.GetURLHandler)
+	})
+	r.Route("/", func(r chi.Router){
+		r.HandleFunc("/", c.DefaultHandler)
+		r.Post("/", c.AddURLHandler)
+	})
 
-	return httptest.NewServer(router)
+	//router.HandleFunc("/", c.DefaultHandler)
+	//router.Get("/{urlID}", c.GetURLHandler)
+	//router.Post("/", c.AddURLHandler)
+
+	return httptest.NewServer(r)
 }
 
 // Функция HTTP клиент для тестовых запросов

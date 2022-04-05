@@ -14,22 +14,24 @@ import (
 
 func main() {
 
-	router := chi.NewRouter()
+	r := chi.NewRouter()
 
 	// зададим встроенные middleware, чтобы улучшить стабильность приложения
-	router.Use(middleware.RequestID)
-	router.Use(middleware.RealIP)
-	router.Use(middleware.Logger)
-	router.Use(middleware.Recoverer)
+	r.Use(middleware.RequestID)
+	r.Use(middleware.RealIP)
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
 
 	db := storage.NewInMemoryDB()
 	lc := service.NewLinkCompressor(5,  "http://127.0.0.1:8080")
 	c := handler.NewController(db, lc)
 
-	router.HandleFunc("/", c.DefaultHandler)
-	router.Get("/{urlID}", c.GetURLHandler)
-	router.Post("/", c.AddURLHandler)
 
-	log.Fatal(http.ListenAndServe("127.0.0.1:8080", router))
+	r.HandleFunc("/", c.DefaultHandler)
+	r.Post("/api/shorten", c.AddJSONURLHandler)
+	r.Get("/{urlID}", c.GetURLHandler)
+	r.Post("/", c.AddURLHandler)
+
+	log.Fatal(http.ListenAndServe("127.0.0.1:8080", r))
 }
 
