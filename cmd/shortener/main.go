@@ -19,7 +19,8 @@ func main() {
 	serverAddress := os.Getenv("SERVER_ADDRESS")
 	baseURL := os.Getenv("BASE_URL")
 	if len(serverAddress) == 0 || len(baseURL) == 0 {
-		log.Fatal("Please set environment variables:\n export SERVER_ADDRESS=127.0.0.1:8080\n export BASE_URL=http://127.0.0.1:8080\n")
+		serverAddress = "127.0.0.1:8080"
+		baseURL = "http://127.0.0.1:8080"
 	}
 
 	r := chi.NewRouter()
