@@ -25,6 +25,8 @@ func NewTestServer() *httptest.Server{
 
 	r := chi.NewRouter()
 	db := storage.NewInMemoryDB()
+	//db := storage.NewFileDB("test_db.txt") // TODO: Подумать как лучше сделать оба теста
+											 // TODO: Убирать за собой тестовые данные|файлы
 	lc := service.NewLinkCompressor(5, fmt.Sprintf("http://%s", ServiceAddress))
 	c := NewController(db, lc)
 

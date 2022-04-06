@@ -11,7 +11,7 @@ import (
 )
 
 type Controller struct {
-	db *storage.InMemoryDB
+	db storage.Repository
 	lc service.LinkCompressor
 }
 
@@ -21,7 +21,7 @@ type URL struct {
 }
 
 
-func NewController(db *storage.InMemoryDB,  lc service.LinkCompressor) *Controller {
+func NewController(db storage.Repository,  lc service.LinkCompressor) *Controller {
 	c := &Controller{
 		db: db,
 		lc: lc,

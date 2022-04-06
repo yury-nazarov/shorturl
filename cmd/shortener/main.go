@@ -17,10 +17,23 @@ func main() {
 
 	// Получаем конфигурацию из переменных окружения
 	serverAddress := os.Getenv("SERVER_ADDRESS")
-	baseURL := os.Getenv("BASE_URL")
-	if len(serverAddress) == 0 || len(baseURL) == 0 {
+	if len(serverAddress) == 0 {
 		serverAddress = "127.0.0.1:8080"
+	}
+
+	baseURL := os.Getenv("BASE_URL")
+	if len(baseURL) == 0 {
 		baseURL = "http://127.0.0.1:8080"
+	}
+
+	// Если указан файл для хранения данных - храним в нем,
+	// иначе храним в RAM
+	fileStoragePath := os.Getenv("FILE_STORAGE_PATH")
+	var db storage.Repository
+	if len(fileStoragePath) == 0 {
+		db = storage.NewInMemoryDB()
+	} else {
+		db = storage.NewFileDB(fileStoragePath)
 	}
 
 	r := chi.NewRouter()
@@ -31,7 +44,6 @@ func main() {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
-	db := storage.NewInMemoryDB()
 	lc := service.NewLinkCompressor(5,  baseURL)
 	c := handler.NewController(db, lc)
 
