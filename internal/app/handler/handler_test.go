@@ -17,6 +17,8 @@ import (
 
 	"github.com/yury-nazarov/shorturl/internal/app/service"
 	"github.com/yury-nazarov/shorturl/internal/app/storage"
+	"github.com/yury-nazarov/shorturl/internal/app/storage/filedb"
+	"github.com/yury-nazarov/shorturl/internal/app/storage/inmemorydb"
 )
 
 
@@ -29,11 +31,11 @@ func NewTestServer(dbName string) *httptest.Server{
 	var db storage.Repository
 	switch dbName {
 	case "fileDB":
-		db = storage.NewFileDB("test_db.txt")
+		db = filedb.NewFileDB("test_db.txt")
 	case "inMemoryDB":
-		db = storage.NewInMemoryDB()
+		db = inmemorydb.NewInMemoryDB()
 	default:
-		db = storage.NewInMemoryDB()
+		db = inmemorydb.NewInMemoryDB()
 	}
 
 	lc := service.NewLinkCompressor(5, fmt.Sprintf("http://%s", ServiceAddress))

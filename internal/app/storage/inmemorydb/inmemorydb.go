@@ -1,4 +1,4 @@
-package storage
+package inmemorydb
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ type inMemoryDB struct {
 	db map[string]string
 }
 
-func NewInMemoryDB() *inMemoryDB{
+func NewInMemoryDB() *inMemoryDB {
 	db := &inMemoryDB{
 		db: map[string]string{},
 	}

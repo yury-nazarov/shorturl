@@ -11,6 +11,8 @@ import (
 	"github.com/yury-nazarov/shorturl/internal/app/handler"
 	"github.com/yury-nazarov/shorturl/internal/app/service"
 	"github.com/yury-nazarov/shorturl/internal/app/storage"
+	"github.com/yury-nazarov/shorturl/internal/app/storage/filedb"
+	"github.com/yury-nazarov/shorturl/internal/app/storage/inmemorydb"
 )
 
 func main() {
@@ -31,9 +33,9 @@ func main() {
 	fileStoragePath := os.Getenv("FILE_STORAGE_PATH")
 	var db storage.Repository
 	if len(fileStoragePath) == 0 {
-		db = storage.NewInMemoryDB()
+		db = inmemorydb.NewInMemoryDB()
 	} else {
-		db = storage.NewFileDB(fileStoragePath)
+		db = filedb.NewFileDB(fileStoragePath)
 	}
 
 	r := chi.NewRouter()
