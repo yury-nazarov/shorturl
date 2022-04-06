@@ -1,6 +1,8 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -15,29 +17,36 @@ import (
 	"github.com/yury-nazarov/shorturl/internal/app/storage/inmemorydb"
 )
 
+
 func main() {
+	// Парсим аргументы командной строки
+	serverAddressFlag := flag.String("a", "", "set server address, by example: 127.0.0.1:8080")
+	baseUrlFlag := flag.String("b", "", "set base URL, by example: http://127.0.0.1:8080")
+	fileStoragePathFlag := flag.String("f", "", "set file path for storage, by example: db.txt")
+	flag.Parse()
 
-	// Получаем конфигурацию из переменных окружения
-	serverAddress := os.Getenv("SERVER_ADDRESS")
-	if len(serverAddress) == 0 {
-		serverAddress = "127.0.0.1:8080"
-	}
+	// Получаем переменные окружения
+	serverAddressEnv := os.Getenv("SERVER_ADDRESS")
+	baseURLEnv := os.Getenv("BASE_URL")
+	fileStoragePathEnv := os.Getenv("FILE_STORAGE_PATH")
 
-	baseURL := os.Getenv("BASE_URL")
-	if len(baseURL) == 0 {
-		baseURL = "http://127.0.0.1:8080"
-	}
+	// Устанавливаем конфигурационные параметры по приоритету:
+	// 		1. Флаги;
+	// 		2. Переменные окружения;
+	// 		3. Дефолтное значение.
+	serverAddress := serverConfigInit(*serverAddressFlag, serverAddressEnv, "127.0.0.1:8080")
+	baseURL := serverConfigInit(*baseUrlFlag, baseURLEnv, "http://127.0.0.1:8080")
+	dbFileName := serverConfigInit(*fileStoragePathFlag, fileStoragePathEnv, "")
 
-	// Если указан файл для хранения данных - храним в нем,
-	// иначе храним в RAM/inMemoryDB
-	fileStoragePath := os.Getenv("FILE_STORAGE_PATH")
+	// Инициируем БД
 	var db storage.Repository
-	if len(fileStoragePath) == 0 {
+	if len(dbFileName) == 0 {
 		db = inmemorydb.NewInMemoryDB()
 	} else {
-		db = filedb.NewFileDB(fileStoragePath)
+		db = filedb.NewFileDB(dbFileName)
 	}
 
+	// Инициируем БД
 	r := chi.NewRouter()
 
 	// зададим встроенные middleware, чтобы улучшить стабильность приложения
@@ -55,6 +64,17 @@ func main() {
 	r.Get("/{urlID}", c.GetURLHandler)
 	r.Post("/", c.AddURLHandler)
 
+	fmt.Printf("listen %s\n", serverAddress)
 	log.Fatal(http.ListenAndServe(serverAddress, r))
 }
 
+// serverConfigInit - возвращает приоритетное значение из переданых аргументов
+func serverConfigInit(flag string, env string, defaultValue string) string{
+	if len(flag) != 0 {
+		return flag
+	} else if len(env) != 0 {
+		return env
+	} else {
+		return defaultValue
+	}
+}
