@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 
 	"github.com/yury-nazarov/shorturl/internal/app/service"
@@ -50,7 +51,9 @@ func (c *Controller) AddJSONURLHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Сокращаем url и добавляем в БД
 	shortURL := c.lc.SortURL(url.Request)
-	c.db.Add(shortURL, url.Request)
+	if err = c.db.Add(shortURL, url.Request); err != nil {
+		log.Print(err)
+	}
 
 	// Сериализуем контент
 	jsonShortURL, err := json.Marshal(URL{Response: shortURL})

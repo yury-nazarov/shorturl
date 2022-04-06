@@ -27,7 +27,7 @@ func main() {
 	}
 
 	// Если указан файл для хранения данных - храним в нем,
-	// иначе храним в RAM
+	// иначе храним в RAM/inMemoryDB
 	fileStoragePath := os.Getenv("FILE_STORAGE_PATH")
 	var db storage.Repository
 	if len(fileStoragePath) == 0 {

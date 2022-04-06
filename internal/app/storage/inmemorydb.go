@@ -17,8 +17,9 @@ func NewInMemoryDB() *inMemoryDB{
 }
 
 // Add Добавляет новый url в БД
-func (u *inMemoryDB) Add(shortPath string, longURL string) {
+func (u *inMemoryDB) Add(shortPath string, longURL string) error {
 	u.db[shortPath] = longURL
+	return nil
 }
 
 // Get Достает из БД URL

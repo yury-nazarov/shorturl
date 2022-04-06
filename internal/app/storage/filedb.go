@@ -26,8 +26,7 @@ func NewFileDB(fileName string) *fileDB{
 }
 
 // Add - добавляем запись в БД
-func (f *fileDB) Add(shortURL string, originURL string){
-	// TODO: Возможно стоит что то возвращать в виде err для unit тестов в будущем
+func (f *fileDB) Add(shortURL string, originURL string) error{
 	// Создаем новую запись
 	data := &Record{
 		ShortURL: shortURL,
@@ -35,17 +34,20 @@ func (f *fileDB) Add(shortURL string, originURL string){
 	}
 	// Открываем файл на запись
 	p, err := NewProducer(f.name)
-	defer p.Close()
 	if err != nil {
-		// TODO: return err
-		log.Fatal(err)
+		return err
 	}
+	// go vet test: should check returned error before deferring p.Close()
+	defer func() {
+		if err = p.Close(); err != nil {
+			log.Print(err)
+		}
+	}()
 	// Новыю строку
 	if err = p.Write(data); err != nil {
-		// TODO: return err
-		log.Fatal(err)
+		return err
 	}
-	// TODO: return nil
+	return nil
 }
 
 
