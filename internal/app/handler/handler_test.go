@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 
@@ -20,13 +21,21 @@ import (
 
 
 // NewTestServer - конфигурируем тестовый сервер,
-func NewTestServer() *httptest.Server{
+func NewTestServer(dbName string) *httptest.Server{
 	ServiceAddress := "127.0.0.1:8080"
 
 	r := chi.NewRouter()
-	db := storage.NewInMemoryDB()
-	//db := storage.NewFileDB("test_db.txt") // TODO: Подумать как лучше сделать оба теста
-											 // TODO: Убирать за собой тестовые данные|файлы
+
+	var db storage.Repository
+	switch dbName {
+	case "fileDB":
+		db = storage.NewFileDB("test_db.txt")
+	case "inMemoryDB":
+		db = storage.NewInMemoryDB()
+	default:
+		db = storage.NewInMemoryDB()
+	}
+
 	lc := service.NewLinkCompressor(5, fmt.Sprintf("http://%s", ServiceAddress))
 	c := NewController(db, lc)
 
@@ -132,19 +141,25 @@ func TestController_AddJSONURLHandler(t *testing.T) {
 		},
 	}
 
-	ts := NewTestServer()
-	ts.Start()
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			resp, body := testRequest(t, tt.request.httpMethod, tt.request.url, tt.request.body)
-			defer resp.Body.Close() // go vet test
+	// Прогоняем одинаковые тесты на разной конфигурации сервера: inMemoryDB, fileDB
+	tsDBName := []string{"inMemoryDB", "fileDB"}
+	for _, dbName := range tsDBName {
+		ts := NewTestServer(dbName)
+		ts.Start()
+		for _, tt := range tests {
+			testName := fmt.Sprintf("%s: DB: %s", tt.name, dbName)
+			t.Run(testName , func(t *testing.T) {
+				resp, body := testRequest(t, tt.request.httpMethod, tt.request.url, tt.request.body)
+				defer resp.Body.Close() // go vet test
 
-			assert.Equal(t, tt.want.statusCode, resp.StatusCode)
-			assert.Equal(t, tt.want.header.contentType, resp.Header.Get("Content-Type"))
-			assert.Equal(t, tt.want.body, body)
-		})
+				assert.Equal(t, tt.want.statusCode, resp.StatusCode)
+				assert.Equal(t, tt.want.header.contentType, resp.Header.Get("Content-Type"))
+				assert.Equal(t, tt.want.body, body)
+			})
+		}
+		ts.Close()
 	}
-	ts.Close()
+	defer os.Remove("test_db.txt")
 }
 
 func TestController_AddUrlHandler(t *testing.T) {
@@ -198,19 +213,25 @@ func TestController_AddUrlHandler(t *testing.T) {
 		},
 	}
 
-	ts := NewTestServer()
-	ts.Start()
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			resp, body := testRequest(t, tt.request.httpMethod, tt.request.url, tt.request.body)
-			defer resp.Body.Close() // go vet test
+	// Прогоняем одинаковые тесты на разной конфигурации сервера: inMemoryDB, fileDB
+	tsDBName := []string{"inMemoryDB", "fileDB"}
+	for _, dbName := range tsDBName {
+		ts := NewTestServer(dbName)
+		ts.Start()
+		for _, tt := range tests {
+			testName := fmt.Sprintf("%s: DB: %s", tt.name, dbName)
+			t.Run(testName, func(t *testing.T) {
+				resp, body := testRequest(t, tt.request.httpMethod, tt.request.url, tt.request.body)
+				defer resp.Body.Close() // go vet test
 
-			assert.Equal(t, tt.want.statusCode, resp.StatusCode)
-			assert.Equal(t, tt.want.header.contentType, resp.Header.Get("Content-Type"))
-			assert.Equal(t, tt.want.body,  body)
-		})
+				assert.Equal(t, tt.want.statusCode, resp.StatusCode)
+				assert.Equal(t, tt.want.header.contentType, resp.Header.Get("Content-Type"))
+				assert.Equal(t, tt.want.body,  body)
+			})
+		}
+		ts.Close()
 	}
-	ts.Close()
+	defer os.Remove("test_db.txt")
 }
 
 func TestController_GetUrlHandler(t *testing.T) {
@@ -273,18 +294,24 @@ func TestController_GetUrlHandler(t *testing.T) {
 		},
 	}
 
-	ts := NewTestServer()
-	ts.Start()
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			resp, _ := testRequest(t, tt.request.httpMethod, tt.request.url, tt.request.body)
-			defer resp.Body.Close() // go vet test from github
+	// Прогоняем одинаковые тесты на разной конфигурации сервера: inMemoryDB, fileDB
+	tsDBName := []string{"inMemoryDB", "fileDB"}
+	for _, dbName := range tsDBName {
+		ts := NewTestServer(dbName)
+		ts.Start()
+		for _, tt := range tests {
+			testName := fmt.Sprintf("%s: DB: %s", tt.name, dbName)
+			t.Run(testName, func(t *testing.T) {
+				resp, _ := testRequest(t, tt.request.httpMethod, tt.request.url, tt.request.body)
+				defer resp.Body.Close() // go vet test from github
 
-			assert.Equal(t, tt.want.statusCode, resp.StatusCode)
-			assert.Equal(t, tt.want.header.locations, resp.Header.Get("Location"))
-		})
+				assert.Equal(t, tt.want.statusCode, resp.StatusCode)
+				assert.Equal(t, tt.want.header.locations, resp.Header.Get("Location"))
+			})
+		}
+		ts.Close()
 	}
-	ts.Close()
+	defer os.Remove("test_db.txt")
 }
 
 
@@ -334,17 +361,23 @@ func TestController_DefaultHandler(t *testing.T) {
 		},
 	}
 
-	ts := NewTestServer()
-	ts.Start()
-	for _, tt := range tests{
-		t.Run(tt.name, func(t *testing.T){
-			resp, body := testRequest(t, tt.request.httpMethod, tt.request.url, tt.request.body)
-			defer resp.Body.Close() // go vet test from github
+	// Прогоняем одинаковые тесты на разной конфигурации сервера: inMemoryDB, fileDB
+	tsDBName := []string{"inMemoryDB", "fileDB"}
+	for _, dbName := range tsDBName {
+		ts := NewTestServer(dbName)
+		ts.Start()
+		for _, tt := range tests {
+			testName := fmt.Sprintf("%s: DB: %s", tt.name, dbName)
+			t.Run(testName, func(t *testing.T){
+				resp, body := testRequest(t, tt.request.httpMethod, tt.request.url, tt.request.body)
+				defer resp.Body.Close() // go vet test from github
 
-			assert.Equal(t, tt.want.statusCode, resp.StatusCode)
-			assert.Equal(t, tt.want.body, body)
-		})
+				assert.Equal(t, tt.want.statusCode, resp.StatusCode)
+				assert.Equal(t, tt.want.body, body)
+			})
+		}
+		ts.Close()
 	}
-	ts.Close()
+	defer os.Remove("test_db.txt")
 }
 
