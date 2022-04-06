@@ -21,7 +21,7 @@ import (
 func main() {
 	// Парсим аргументы командной строки
 	serverAddressFlag := flag.String("a", "", "set server address, by example: 127.0.0.1:8080")
-	baseUrlFlag := flag.String("b", "", "set base URL, by example: http://127.0.0.1:8080")
+	baseURLFlag := flag.String("b", "", "set base URL, by example: http://127.0.0.1:8080")
 	fileStoragePathFlag := flag.String("f", "", "set file path for storage, by example: db.txt")
 	flag.Parse()
 
@@ -35,7 +35,7 @@ func main() {
 	// 		2. Переменные окружения;
 	// 		3. Дефолтное значение.
 	serverAddress := serverConfigInit(*serverAddressFlag, serverAddressEnv, "127.0.0.1:8080")
-	baseURL := serverConfigInit(*baseUrlFlag, baseURLEnv, "http://127.0.0.1:8080")
+	baseURL := serverConfigInit(*baseURLFlag, baseURLEnv, "http://127.0.0.1:8080")
 	dbFileName := serverConfigInit(*fileStoragePathFlag, fileStoragePathEnv, "")
 
 	// Инициируем БД
