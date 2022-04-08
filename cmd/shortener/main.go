@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -46,7 +45,7 @@ func main() {
 		db = filedb.NewFileDB(dbFileName)
 	}
 
-	// Инициируем БД
+	// Инициируем Router
 	r := chi.NewRouter()
 
 	// зададим встроенные middleware, чтобы улучшить стабильность приложения
@@ -55,16 +54,18 @@ func main() {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
+	// Создаем объект для доступа к методам компрессии URL
 	lc := service.NewLinkCompressor(5,  baseURL)
+	// Инициируем объект для доступа к хендлерам
 	c := handler.NewController(db, lc)
 
-
+	// API endpoints
 	r.HandleFunc("/", c.DefaultHandler)
 	r.Post("/api/shorten", c.AddJSONURLHandler)
 	r.Get("/{urlID}", c.GetURLHandler)
 	r.Post("/", c.AddURLHandler)
 
-	fmt.Printf("listen %s\n", serverAddress)
+	// Запускаем сервер
 	log.Fatal(http.ListenAndServe(serverAddress, r))
 }
 

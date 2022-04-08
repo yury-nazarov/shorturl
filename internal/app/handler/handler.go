@@ -21,7 +21,7 @@ type URL struct {
 	Response  	string `json:"result,omitempty"`	// Не учитываем поле при Unmarshal
 }
 
-// NewController - вернет объект для доступа к эндпоинтам
+// NewController - вернет объект для доступа к хендлерам
 func NewController(db storage.Repository,  lc service.LinkCompressor) *Controller {
 	c := &Controller{
 		db: db,
