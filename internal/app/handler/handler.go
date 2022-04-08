@@ -21,7 +21,7 @@ type URL struct {
 	Response  	string `json:"result,omitempty"`	// Не учитываем поле при Unmarshal
 }
 
-
+// NewController - вернет объект для доступа к эндпоинтам
 func NewController(db storage.Repository,  lc service.LinkCompressor) *Controller {
 	c := &Controller{
 		db: db,
@@ -88,7 +88,9 @@ func (c *Controller) AddURLHandler(w http.ResponseWriter, r * http.Request) {
 	// Сокращаем url и добавляем в БД
 	originURL := string(bodyData)
 	shortURL := c.lc.SortURL(originURL)
-	c.db.Add(shortURL, originURL)
+	if err = c.db.Add(shortURL, originURL); err != nil {
+		log.Print(err)
+	}
 
 	// HTTP Response
 	w.Header().Add("Content-Type", "text/plain")

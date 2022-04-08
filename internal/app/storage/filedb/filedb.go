@@ -1,10 +1,12 @@
 package filedb
 
 import (
-	"errors"
+	"fmt"
 	"io"
 	"log"
 )
+
+// Хранение данных в файле
 
 // Record - описывает каждую запись в БД как json
 type record struct {
@@ -16,7 +18,7 @@ type fileDB struct {
 	name string
 }
 
-// NewFileDB - 	возвращает объект
+// NewFileDB - 	возвращает объект для записи и чтения из файла БД
 //			   	Метод Add() открывает файл, записывает новую строчку
 // 				Метод Get() ищет нужное значение в файле и возвращает его
 func NewFileDB(fileName string) *fileDB {
@@ -28,7 +30,7 @@ func NewFileDB(fileName string) *fileDB {
 
 // Add - добавляем запись в БД
 func (f *fileDB) Add(shortURL string, originURL string) error{
-	// Создаем новую запись
+	// Создаем новую запись как JSON объект
 	data := &record{
 		ShortURL: shortURL,
 		OriginURL: originURL,
@@ -44,7 +46,7 @@ func (f *fileDB) Add(shortURL string, originURL string) error{
 			log.Print(err)
 		}
 	}()
-	// Новыю строку
+	// Записываем новую строку
 	if err = p.write(data); err != nil {
 		return err
 	}
@@ -65,7 +67,7 @@ func (f *fileDB) Get(shortURL string) (string, error){
 		r, err := c.read()
 
 		if err == io.EOF {
-			return "", errors.New("the URL not found")
+			return "", fmt.Errorf("the URL not found")
 		}
 		if r.ShortURL == shortURL {
 			return r.OriginURL, nil

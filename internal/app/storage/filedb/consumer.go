@@ -5,6 +5,8 @@ import (
 	"os"
 )
 
+// Чтение данных из файла
+
 type consumer struct {
 	file *os.File
 	decoder *json.Decoder

@@ -5,6 +5,8 @@ import (
 	"os"
 )
 
+// Запись данных в файл
+
 type producer struct {
 	file *os.File
 	encoder *json.Encoder

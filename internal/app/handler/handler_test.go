@@ -24,6 +24,7 @@ import (
 
 // NewTestServer - конфигурируем тестовый сервер,
 func NewTestServer(dbName string) *httptest.Server{
+	// В дальнейшем на этот адрес/url будут завязаны тест кейсы
 	ServiceAddress := "127.0.0.1:8080"
 
 	r := chi.NewRouter()
