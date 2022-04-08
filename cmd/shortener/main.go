@@ -72,9 +72,10 @@ func main() {
 func serverConfigInit(flag string, env string, defaultValue string) string{
 	if len(flag) != 0 {
 		return flag
-	} else if len(env) != 0 {
-		return env
-	} else {
-		return defaultValue
 	}
+	if len(env) != 0 {
+		return env
+	}
+	return defaultValue
+
 }
