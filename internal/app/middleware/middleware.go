@@ -12,17 +12,18 @@ import (
 
 //contentType := ["application/javascript", "application/json", "text/css", "text/html", "text/plain", "text/xml"]
 
-type gzipWriter struct {
+type gzipBodyWriter struct {
 	http.ResponseWriter
 	Writer io.Writer
 }
 
-func (w gzipWriter) Write(b []byte) (int, error) {
+func (w gzipBodyWriter) Write(b []byte) (int, error) {
 	return w.Writer.Write(b)
 }
 
-// HTTPResponseCompressor - отправляет сжатый gzip HTTP Response,
-//							если от клиента пришел заголовок: "Accept-Encoding: gzip"
+// HTTPResponseCompressor - от клиента пришел заголовок: "Accept-Encoding: gzip"
+//							(Данные от клиента не сжаты в формате gzip! Передаются текстом)
+//							вернет сжатый gzip HTTP Response Body.
 func HTTPResponseCompressor(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request){
 		// Если gzip не поддерживается, передаем управление дальше без изменений
@@ -42,17 +43,24 @@ func HTTPResponseCompressor(next http.Handler) http.Handler {
 		w.Header().Set("Content-Encoding", "gzip")
 		w.Header().Set("Vary", "Accept-Encoding")
 		w.Header().Del("Content-Length")
-		next.ServeHTTP(gzipWriter{ResponseWriter: w, Writer: gz}, r)
+
+		next.ServeHTTP(gzipBodyWriter{
+			ResponseWriter: w,
+			Writer: gz,
+		}, r)
 
 	})
 }
 
 
-// HTTPRequestDecompressor - распаковывает сжаты gzip HTTP Request Body.
+// HTTPRequestDecompressor - от клиента пришли заголовоки: "Content-Encoding: gzip"
+//							 (Данные от клиента сжаты в формате gzip!)
+//  						 распаковывает сжатый gzip HTTP Request Body.
+//							 Добавляет в БД в текстовую ссылку
 func HTTPRequestDecompressor(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request){
 		// Если запрос не сжат с помощью gzip, передаем управление дальше без изменений
-		if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
+		if !strings.Contains(r.Header.Get("Content-Encoding"), "gzip") {
 			next.ServeHTTP(w, r)
 			return
 		}

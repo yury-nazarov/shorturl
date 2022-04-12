@@ -10,6 +10,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 
 	"github.com/yury-nazarov/shorturl/internal/app/handler"
+	appMiddleware "github.com/yury-nazarov/shorturl/internal/app/middleware"
 	"github.com/yury-nazarov/shorturl/internal/app/service"
 	"github.com/yury-nazarov/shorturl/internal/app/storage"
 	"github.com/yury-nazarov/shorturl/internal/app/storage/filedb"
@@ -54,9 +55,8 @@ func main() {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 	// Собственные middleware
-	//r.Use(appMiddleware.HTTPResponseCompressor)
-	//r.Use(appMiddleware.HTTPRequestDecompressor)
-	r.Use(middleware.Compress(5, "gzip"))
+	r.Use(appMiddleware.HTTPResponseCompressor)
+	r.Use(appMiddleware.HTTPRequestDecompressor)
 
 	// Создаем объект для доступа к методам компрессии URL
 	lc := service.NewLinkCompressor(5,  baseURL)
