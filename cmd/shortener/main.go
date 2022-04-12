@@ -56,7 +56,7 @@ func main() {
 	r.Use(middleware.Recoverer)
 	// Собственные middleware
 	r.Use(appMiddleware.HTTPResponseCompressor)
-	r.Use(appMiddleware.HTTPRequestDecompressor)
+	//r.Use(appMiddleware.HTTPRequestDecompressor)
 
 	// Создаем объект для доступа к методам компрессии URL
 	lc := service.NewLinkCompressor(5,  baseURL)
