@@ -17,12 +17,12 @@ type Controller struct {
 }
 
 type URL struct {
-	Request 	string `json:"url,omitempty"` 	 	// Не учитываем поле при Marshal
-	Response  	string `json:"result,omitempty"`	// Не учитываем поле при Unmarshal
+	Request  string `json:"url,omitempty"`    // Не учитываем поле при Marshal
+	Response string `json:"result,omitempty"` // Не учитываем поле при Unmarshal
 }
 
 // NewController - вернет объект для доступа к хендлерам
-func NewController(db storage.Repository,  lc service.LinkCompressor) *Controller {
+func NewController(db storage.Repository, lc service.LinkCompressor) *Controller {
 	c := &Controller{
 		db: db,
 		lc: lc,
@@ -72,7 +72,7 @@ func (c *Controller) AddJSONURLHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (c *Controller) AddURLHandler(w http.ResponseWriter, r * http.Request) {
+func (c *Controller) AddURLHandler(w http.ResponseWriter, r *http.Request) {
 	// Читаем присланые данные
 	bodyData, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -101,7 +101,7 @@ func (c *Controller) AddURLHandler(w http.ResponseWriter, r * http.Request) {
 	}
 }
 
-func (c *Controller) GetURLHandler(w http.ResponseWriter, r * http.Request) {
+func (c *Controller) GetURLHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Получаем оригинальный URL из БД
 	shortURL := fmt.Sprintf("%s%s", c.lc.ServiceName, r.URL.Path)
@@ -114,6 +114,6 @@ func (c *Controller) GetURLHandler(w http.ResponseWriter, r * http.Request) {
 	w.WriteHeader(http.StatusTemporaryRedirect)
 }
 
-func (c *Controller) DefaultHandler(w http.ResponseWriter, r * http.Request) {
+func (c *Controller) DefaultHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusBadRequest)
 }

@@ -9,14 +9,14 @@ import (
 )
 
 type LinkCompressor struct {
-	urlLength int
+	urlLength   int
 	ServiceName string
 }
 
 // NewLinkCompressor - объект содержит в себе все необходимое для подготови короткого URL
-func NewLinkCompressor(urlLength int, urlAnswer string) LinkCompressor{
+func NewLinkCompressor(urlLength int, urlAnswer string) LinkCompressor {
 	lc := LinkCompressor{
-		urlLength: urlLength,
+		urlLength:   urlLength,
 		ServiceName: urlAnswer,
 	}
 	return lc

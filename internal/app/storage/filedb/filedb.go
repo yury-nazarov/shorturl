@@ -10,8 +10,8 @@ import (
 
 // Record - описывает каждую запись в БД как json
 type record struct {
-	ShortURL 	string 	`json:"short_url"`
-	OriginURL 	string 	`json:"origin_url"`
+	ShortURL  string `json:"short_url"`
+	OriginURL string `json:"origin_url"`
 }
 
 type fileDB struct {
@@ -29,10 +29,10 @@ func NewFileDB(fileName string) *fileDB {
 }
 
 // Add - добавляем запись в БД
-func (f *fileDB) Add(shortURL string, originURL string) error{
+func (f *fileDB) Add(shortURL string, originURL string) error {
 	// Создаем новую запись как JSON объект
 	data := &record{
-		ShortURL: shortURL,
+		ShortURL:  shortURL,
 		OriginURL: originURL,
 	}
 	// Открываем файл на запись
@@ -53,9 +53,8 @@ func (f *fileDB) Add(shortURL string, originURL string) error{
 	return nil
 }
 
-
 // Get Поиск в БД
-func (f *fileDB) Get(shortURL string) (string, error){
+func (f *fileDB) Get(shortURL string) (string, error) {
 	// Открываем файл на чтение
 	c, err := newConsumer(f.name)
 	if err != nil {

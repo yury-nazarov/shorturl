@@ -25,9 +25,8 @@ import (
 	"github.com/yury-nazarov/shorturl/internal/app/storage/inmemorydb"
 )
 
-
 // NewTestServer - конфигурируем тестовый сервер,
-func NewTestServer(dbName string) *httptest.Server{
+func NewTestServer(dbName string) *httptest.Server {
 	// В дальнейшем на этот адрес/url будут завязаны тест кейсы
 	ServiceAddress := "127.0.0.1:8080"
 
@@ -71,7 +70,7 @@ func NewTestServer(dbName string) *httptest.Server{
 }
 
 // Функция HTTP клиент для тестовых запросов
-func testRequest(t *testing.T,  method, path string, body string, headers map[string]string) (*http.Response, string){
+func testRequest(t *testing.T, method, path string, body string, headers map[string]string) (*http.Response, string) {
 	// Подготавливаем HTTP Request для тестового сервера
 	req, err := http.NewRequest(method, path, strings.NewReader(body))
 	require.NoError(t, err)
@@ -120,13 +119,13 @@ func gzipCompressor(payload string) *bytes.Buffer {
 func gzipDecompressor(body string) string {
 	gz, err := gzip.NewReader(strings.NewReader(body))
 	if err != nil {
-		log.Fatal("ERR1", err)
+		log.Fatal(err)
 	}
 	defer gz.Close()
 
 	result, err := io.ReadAll(gz)
 	if err != nil {
-		log.Fatal("ERR2",err)
+		log.Fatal(err)
 	}
 	return string(result)
 }
@@ -135,21 +134,21 @@ func TestController_AddJSONURLHandler(t *testing.T) {
 	// Параметры для настройки тестового HTTP Request
 	type request struct {
 		httpMethod string
-		url string
-		headers map[string]string
-		body string
+		url        string
+		headers    map[string]string
+		body       string
 	}
 	// Ожидаемый ответ сервера
 	type want struct {
 		statusCode int
-		headers map[string]string
-		body string
+		headers    map[string]string
+		body       string
 	}
 	// Список тесткейсов
-	tests := []struct{
-		name string
+	tests := []struct {
+		name    string
 		request request
-		want want
+		want    want
 	}{
 		{
 			name: "test_1: POST: Success JSON request",
@@ -157,12 +156,12 @@ func TestController_AddJSONURLHandler(t *testing.T) {
 				httpMethod: http.MethodPost,
 				url:        "http://127.0.0.1:8080/api/shorten",
 				body:       `{"url":"https://www.youtube.com/watch?v=09nmlZjxRFs"}`,
-				headers: map[string]string{"Content-Type": "application/json"},
+				headers:    map[string]string{"Content-Type": "application/json"},
 			},
 			want: want{
 				statusCode: http.StatusCreated,
 				body:       `{"result":"http://127.0.0.1:8080/KJYUS"}`,
-				headers: map[string]string{"Content-Type": "application/json"},
+				headers:    map[string]string{"Content-Type": "application/json"},
 			},
 		},
 		{
@@ -171,7 +170,7 @@ func TestController_AddJSONURLHandler(t *testing.T) {
 				httpMethod: http.MethodPost,
 				url:        "http://127.0.0.1:8080/api/shorten",
 				body:       "",
-				headers: map[string]string{"Content-Type": "application/json"},
+				headers:    map[string]string{"Content-Type": "application/json"},
 			},
 			want: want{
 				statusCode: http.StatusBadRequest,
@@ -183,12 +182,12 @@ func TestController_AddJSONURLHandler(t *testing.T) {
 				httpMethod: http.MethodPost,
 				url:        "http://127.0.0.1:8080/api/shorten",
 				body:       gzipCompressor(`{"url":"https://www.youtube.com/watch?v=09nmlZjxRFs"}`).String(),
-				headers: map[string]string{"Content-Encoding": "gzip"},
+				headers:    map[string]string{"Content-Encoding": "gzip"},
 			},
 			want: want{
 				statusCode: http.StatusCreated,
 				body:       `{"result":"http://127.0.0.1:8080/KJYUS"}`,
-				headers: map[string]string{"Content-Type": "application/json"},
+				headers:    map[string]string{"Content-Type": "application/json"},
 			},
 		},
 		{
@@ -197,124 +196,12 @@ func TestController_AddJSONURLHandler(t *testing.T) {
 				httpMethod: http.MethodPost,
 				url:        "http://127.0.0.1:8080/api/shorten",
 				body:       `{"url":"https://www.youtube.com/watch?v=09nmlZjxRFs"}`,
-				headers: map[string]string{"Accept-Encoding": "gzip"},
+				headers:    map[string]string{"Accept-Encoding": "gzip"},
 			},
 			want: want{
 				statusCode: http.StatusCreated,
 				body:       `{"result":"http://127.0.0.1:8080/KJYUS"}`,
 				// TODO: Не совсем понятно, нужно ли при этом еще ставить заголовки указывающие что внутри JSON
-				headers: map[string]string{"Content-Encoding": "gzip"},
-			},
-		},
-	}
-
-	// Запускаем одинаковые тесты на разной конфигурации сервера: inMemoryDB, fileDB
-	tsDBName := []string{"inMemoryDB", "fileDB"}
-	for _, dbName := range tsDBName {
-		ts := NewTestServer(dbName)
-		ts.Start()
-		for _, tt := range tests {
-			testName := fmt.Sprintf("%s: DB: %s", tt.name, dbName)
-			t.Run(testName , func(t *testing.T) {
-				// Выполняем тестовый HTTP Request
-				resp, body := testRequest(t, tt.request.httpMethod, tt.request.url, tt.request.body, tt.request.headers)
-				defer resp.Body.Close() // go vet test
-
-				// Проверяем все возможные хедеры для ожидаемого ответа, которые указали в тест кейсах выше.
-				// Если хедер не указан, то будет возвращено пустое значение.
-				// Возможно не самое элегантное решение, но пока я лучше не придумал :-/
-				wantContentTypeHeader, _ := tt.want.headers["Content-Type"]
-				wantAcceptEncodingHeader, _ := tt.want.headers["Accept-Encoding"]
-				wantContentEncodingHeader, _ := tt.want.headers["Content-Encoding"]
-
-				// Если мы ожидаем сжатый в gzip ответ. Т.е. в HTTP Response пришел херед: "Content-Encoding: gzip"
-				// В этом случае нужно распаковать из gzip body и сравнить результат с ожидаемым
-				if resp.Header.Get("Content-Encoding") == "gzip" {
-					assert.Equal(t, wantContentEncodingHeader, resp.Header.Get("Content-Encoding"))
-					assert.Equal(t, tt.want.body, gzipDecompressor(body))
-				} else {
-					assert.Equal(t, wantContentTypeHeader, resp.Header.Get("Content-Type"))
-					assert.Equal(t, wantAcceptEncodingHeader, resp.Header.Get("Accept-Encoding"))
-
-					assert.Equal(t, tt.want.statusCode, resp.StatusCode)
-					assert.Equal(t, tt.want.body,  body)
-				}
-			})
-		}
-		ts.Close()
-	}
-	defer os.Remove("test_db.txt")
-}
-
-func TestController_AddUrlHandler(t *testing.T) {
-	// Параметры для настройки тестового HTTP Request
-	type request struct {
-		httpMethod string
-		url string
-		headers map[string]string
-		body string
-	}
-	// Ожидаемый ответ сервера
-	type want struct {
-		statusCode int
-		headers map[string]string
-		body string
-	}
-	// Список тесткейсов
-	tests := []struct{
-		name string
-		request request
-		want want
-	}{
-		{
-			name: "test_1: POST: Success request",
-			request: request{
-				httpMethod: http.MethodPost,
-				url:        "http://127.0.0.1:8080",
-				body:       "https://www.youtube.com/watch?v=09nmlZjxRFs",
-			},
-			want: want{
-				statusCode: http.StatusCreated,
-				body: "http://127.0.0.1:8080/KJYUS",
-				headers: map[string]string{"Content-Type": "text/plain"},
-			},
-		},
-		{
-			name: "test_2: POST: Empty body",
-			request: request{
-				httpMethod: http.MethodPost,
-				url: "http://127.0.0.1:8080",
-				body: "",
-			},
-			want: want {
-				statusCode: http.StatusBadRequest,
-			},
-		},
-		{
-			name: "test_3: POST: Server incoming request in the gzip format, return the text format.",
-			request: request{
-				httpMethod: http.MethodPost,
-				url: "http://127.0.0.1:8080",
-				body: gzipCompressor("https://www.youtube.com/watch?v=09nmlZjxRFs").String(),
-				headers: map[string]string{"Content-Encoding": "gzip"},
-			},
-			want: want {
-				statusCode: http.StatusCreated,
-				body: "http://127.0.0.1:8080/KJYUS",
-				headers: map[string]string{"Content-Type": "text/plain"},
-			},
-		},
-		{
-			name: "test_4: POST: Server incoming request in the text format with Header: 'Accept-Encoding: gzip', return the gzip format.",
-			request: request{
-				httpMethod: http.MethodPost,
-				url: "http://127.0.0.1:8080",
-				body: "https://www.youtube.com/watch?v=09nmlZjxRFs",
-				headers: map[string]string{"Accept-Encoding": "gzip"},
-			},
-			want: want {
-				statusCode: http.StatusCreated,
-				body: "http://127.0.0.1:8080/KJYUS",
 				headers: map[string]string{"Content-Encoding": "gzip"},
 			},
 		},
@@ -349,7 +236,119 @@ func TestController_AddUrlHandler(t *testing.T) {
 					assert.Equal(t, wantAcceptEncodingHeader, resp.Header.Get("Accept-Encoding"))
 
 					assert.Equal(t, tt.want.statusCode, resp.StatusCode)
-					assert.Equal(t, tt.want.body,  body)
+					assert.Equal(t, tt.want.body, body)
+				}
+			})
+		}
+		ts.Close()
+	}
+	defer os.Remove("test_db.txt")
+}
+
+func TestController_AddUrlHandler(t *testing.T) {
+	// Параметры для настройки тестового HTTP Request
+	type request struct {
+		httpMethod string
+		url        string
+		headers    map[string]string
+		body       string
+	}
+	// Ожидаемый ответ сервера
+	type want struct {
+		statusCode int
+		headers    map[string]string
+		body       string
+	}
+	// Список тесткейсов
+	tests := []struct {
+		name    string
+		request request
+		want    want
+	}{
+		{
+			name: "test_1: POST: Success request",
+			request: request{
+				httpMethod: http.MethodPost,
+				url:        "http://127.0.0.1:8080",
+				body:       "https://www.youtube.com/watch?v=09nmlZjxRFs",
+			},
+			want: want{
+				statusCode: http.StatusCreated,
+				body:       "http://127.0.0.1:8080/KJYUS",
+				headers:    map[string]string{"Content-Type": "text/plain"},
+			},
+		},
+		{
+			name: "test_2: POST: Empty body",
+			request: request{
+				httpMethod: http.MethodPost,
+				url:        "http://127.0.0.1:8080",
+				body:       "",
+			},
+			want: want{
+				statusCode: http.StatusBadRequest,
+			},
+		},
+		{
+			name: "test_3: POST: Server incoming request in the gzip format, return the text format.",
+			request: request{
+				httpMethod: http.MethodPost,
+				url:        "http://127.0.0.1:8080",
+				body:       gzipCompressor("https://www.youtube.com/watch?v=09nmlZjxRFs").String(),
+				headers:    map[string]string{"Content-Encoding": "gzip"},
+			},
+			want: want{
+				statusCode: http.StatusCreated,
+				body:       "http://127.0.0.1:8080/KJYUS",
+				headers:    map[string]string{"Content-Type": "text/plain"},
+			},
+		},
+		{
+			name: "test_4: POST: Server incoming request in the text format with Header: 'Accept-Encoding: gzip', return the gzip format.",
+			request: request{
+				httpMethod: http.MethodPost,
+				url:        "http://127.0.0.1:8080",
+				body:       "https://www.youtube.com/watch?v=09nmlZjxRFs",
+				headers:    map[string]string{"Accept-Encoding": "gzip"},
+			},
+			want: want{
+				statusCode: http.StatusCreated,
+				body:       "http://127.0.0.1:8080/KJYUS",
+				headers:    map[string]string{"Content-Encoding": "gzip"},
+			},
+		},
+	}
+
+	// Запускаем одинаковые тесты на разной конфигурации сервера: inMemoryDB, fileDB
+	tsDBName := []string{"inMemoryDB", "fileDB"}
+	for _, dbName := range tsDBName {
+		ts := NewTestServer(dbName)
+		ts.Start()
+		for _, tt := range tests {
+			testName := fmt.Sprintf("%s: DB: %s", tt.name, dbName)
+			t.Run(testName, func(t *testing.T) {
+				// Выполняем тестовый HTTP Request
+				resp, body := testRequest(t, tt.request.httpMethod, tt.request.url, tt.request.body, tt.request.headers)
+				defer resp.Body.Close() // go vet test
+
+				// Проверяем все возможные хедеры для ожидаемого ответа, которые указали в тест кейсах выше.
+				// Если хедер не указан, то будет возвращено пустое значение.
+				// Возможно не самое элегантное решение, но пока я лучше не придумал :-/
+				wantContentTypeHeader, _ := tt.want.headers["Content-Type"]
+				wantAcceptEncodingHeader, _ := tt.want.headers["Accept-Encoding"]
+				wantContentEncodingHeader, _ := tt.want.headers["Content-Encoding"]
+
+				// Если мы ожидаем сжатый в gzip ответ. Т.е. в HTTP Response пришел херед: "Content-Encoding: gzip"
+				// В этом случае нужно распаковать из gzip body и сравнить результат с ожидаемым
+				if resp.Header.Get("Content-Encoding") == "gzip" {
+					assert.Equal(t, wantContentEncodingHeader, resp.Header.Get("Content-Encoding"))
+					assert.Equal(t, tt.want.body, gzipDecompressor(body))
+				} else {
+					assert.Equal(t, wantContentTypeHeader, resp.Header.Get("Content-Type"))
+					assert.Equal(t, wantAcceptEncodingHeader, resp.Header.Get("Accept-Encoding"))
+
+					assert.Equal(t, tt.want.statusCode, resp.StatusCode)
+					assert.Equal(t, tt.want.body, body)
 				}
 			})
 		}
@@ -362,21 +361,21 @@ func TestController_GetUrlHandler(t *testing.T) {
 	// Параметры для настройки тестового HTTP Request
 	type request struct {
 		httpMethod string
-		url string
-		body string
-		headers map[string]string
+		url        string
+		body       string
+		headers    map[string]string
 	}
 	// Ожидаемый ответ сервера
 	type want struct {
-		headers map[string]string
+		headers    map[string]string
 		statusCode int
-		body string
+		body       string
 	}
 	// Список тесткейсов
-	tests := []struct{
-		name string
+	tests := []struct {
+		name    string
 		request request
-		want want
+		want    want
 	}{
 		{
 			name: "Prepare: Add test url into DB",
@@ -386,7 +385,7 @@ func TestController_GetUrlHandler(t *testing.T) {
 				body:       "https://www.youtube.com/watch?v=09nmlZjxRFs",
 			},
 			want: want{
-				headers: map[string]string{"Content-Type": "text/plain"},
+				headers:    map[string]string{"Content-Type": "text/plain"},
 				statusCode: 201,
 				body:       "http://127.0.0.1:8080/KJYUS",
 			},
@@ -395,10 +394,10 @@ func TestController_GetUrlHandler(t *testing.T) {
 			name: "test_1: GET: Success short url from test #1",
 			request: request{
 				httpMethod: http.MethodGet,
-				url: "http://127.0.0.1:8080/KJYUS",
+				url:        "http://127.0.0.1:8080/KJYUS",
 			},
-			want: want {
-				headers: map[string]string{"Location": "https://www.youtube.com/watch?v=09nmlZjxRFs"},
+			want: want{
+				headers:    map[string]string{"Location": "https://www.youtube.com/watch?v=09nmlZjxRFs"},
 				statusCode: http.StatusTemporaryRedirect,
 			},
 		},
@@ -406,9 +405,9 @@ func TestController_GetUrlHandler(t *testing.T) {
 			name: "test_2: GET: Short url not found",
 			request: request{
 				httpMethod: http.MethodGet,
-				url: "http://127.0.0.1:8080/qqWW",
+				url:        "http://127.0.0.1:8080/qqWW",
 			},
-			want: want {
+			want: want{
 				statusCode: http.StatusNotFound,
 			},
 		},
@@ -436,32 +435,31 @@ func TestController_GetUrlHandler(t *testing.T) {
 	defer os.Remove("test_db.txt")
 }
 
-
 func TestController_DefaultHandler(t *testing.T) {
 	// Параметры для настройки тестового HTTP Request
 	type request struct {
 		httpMethod string
-		url string
-		body string
+		url        string
+		body       string
 	}
 	// Ожидаемый ответ сервера
 	type want struct {
 		statusCode int
-		body string
+		body       string
 	}
 	// Список тесткейсов
-	tests := []struct{
-		name string
+	tests := []struct {
+		name    string
 		request request
-		want want
+		want    want
 	}{
 		{
 			name: "test_1: Default: HTTP PUT request",
 			request: request{
 				httpMethod: http.MethodPut,
-				url: "http://127.0.0.1:8080",
+				url:        "http://127.0.0.1:8080",
 			},
-			want: want {
+			want: want{
 				statusCode: http.StatusBadRequest,
 			},
 		},
@@ -469,9 +467,9 @@ func TestController_DefaultHandler(t *testing.T) {
 			name: "test_1: Default: HTTP Delete request",
 			request: request{
 				httpMethod: http.MethodDelete,
-				url: "http://127.0.0.1:8080",
+				url:        "http://127.0.0.1:8080",
 			},
-			want: want {
+			want: want{
 				statusCode: http.StatusBadRequest,
 			},
 		},
@@ -484,7 +482,7 @@ func TestController_DefaultHandler(t *testing.T) {
 		ts.Start()
 		for _, tt := range tests {
 			testName := fmt.Sprintf("%s: DB: %s", tt.name, dbName)
-			t.Run(testName, func(t *testing.T){
+			t.Run(testName, func(t *testing.T) {
 				resp, body := testRequest(t, tt.request.httpMethod, tt.request.url, tt.request.body, map[string]string{})
 				defer resp.Body.Close() // go vet test from github
 
@@ -496,4 +494,3 @@ func TestController_DefaultHandler(t *testing.T) {
 	}
 	defer os.Remove("test_db.txt")
 }
-

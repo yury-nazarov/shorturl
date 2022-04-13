@@ -10,8 +10,6 @@ import (
 	"strings"
 )
 
-//contentType := ["application/javascript", "application/json", "text/css", "text/html", "text/plain", "text/xml"]
-
 type gzipBodyWriter struct {
 	http.ResponseWriter
 	Writer io.Writer
@@ -22,12 +20,12 @@ func (w gzipBodyWriter) Write(b []byte) (int, error) {
 }
 
 // HTTPResponseCompressor - от клиента пришел заголовок: "Accept-Encoding: gzip"
-//							(Данные от клиента не сжаты в формате gzip! Передаются текстом)
+//							(Данные от клиента передал одним из текстовых форматов)
 //							вернет сжатый gzip HTTP Response Body.
 func HTTPResponseCompressor(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request){
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Если gzip не поддерживается, передаем управление дальше без изменений
-		if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip"){
+		if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
 			next.ServeHTTP(w, r)
 			return
 		}
@@ -40,25 +38,25 @@ func HTTPResponseCompressor(next http.Handler) http.Handler {
 		}
 		defer gz.Close()
 
+		// устанавливаем заголовки
 		w.Header().Set("Content-Encoding", "gzip")
 		w.Header().Set("Vary", "Accept-Encoding")
 		w.Header().Del("Content-Length")
 
 		next.ServeHTTP(gzipBodyWriter{
 			ResponseWriter: w,
-			Writer: gz,
+			Writer:         gz,
 		}, r)
 
 	})
 }
 
-
-// HTTPRequestDecompressor - от клиента пришли заголовоки: "Content-Encoding: gzip"
+// HTTPRequestDecompressor - от клиента пришел заголовок: "Content-Encoding: gzip"
 //							 (Данные от клиента сжаты в формате gzip!)
 //  						 распаковывает сжатый gzip HTTP Request Body.
-//							 Добавляет в БД в текстовую ссылку
+//							 Добавляет в БД текстовую ссылку
 func HTTPRequestDecompressor(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request){
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Если запрос не сжат с помощью gzip, передаем управление дальше без изменений
 		if !strings.Contains(r.Header.Get("Content-Encoding"), "gzip") {
 			next.ServeHTTP(w, r)
@@ -78,10 +76,9 @@ func HTTPRequestDecompressor(next http.Handler) http.Handler {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
+		// Записываем распакованый в текстовый формат body и передаем управление дальше
 		body := ioutil.NopCloser(bytes.NewBuffer(data))
 		r.Body = body
 		next.ServeHTTP(w, r)
 	})
 }
-
-
