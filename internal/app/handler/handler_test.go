@@ -222,9 +222,9 @@ func TestController_AddJSONURLHandler(t *testing.T) {
 				// Проверяем все возможные хедеры для ожидаемого ответа, которые указали в тест кейсах выше.
 				// Если хедер не указан, то будет возвращено пустое значение.
 				// Возможно не самое элегантное решение, но пока я лучше не придумал :-/
-				wantContentTypeHeader, _ := tt.want.headers["Content-Type"]
-				wantAcceptEncodingHeader, _ := tt.want.headers["Accept-Encoding"]
-				wantContentEncodingHeader, _ := tt.want.headers["Content-Encoding"]
+				wantContentTypeHeader := tt.want.headers["Content-Type"]
+				wantAcceptEncodingHeader := tt.want.headers["Accept-Encoding"]
+				wantContentEncodingHeader := tt.want.headers["Content-Encoding"]
 
 				// Если мы ожидаем сжатый в gzip ответ. Т.е. в HTTP Response пришел херед: "Content-Encoding: gzip"
 				// В этом случае нужно распаковать из gzip body и сравнить результат с ожидаемым
@@ -334,9 +334,9 @@ func TestController_AddUrlHandler(t *testing.T) {
 				// Проверяем все возможные хедеры для ожидаемого ответа, которые указали в тест кейсах выше.
 				// Если хедер не указан, то будет возвращено пустое значение.
 				// Возможно не самое элегантное решение, но пока я лучше не придумал :-/
-				wantContentTypeHeader, _ := tt.want.headers["Content-Type"]
-				wantAcceptEncodingHeader, _ := tt.want.headers["Accept-Encoding"]
-				wantContentEncodingHeader, _ := tt.want.headers["Content-Encoding"]
+				wantContentTypeHeader := tt.want.headers["Content-Type"]
+				wantAcceptEncodingHeader := tt.want.headers["Accept-Encoding"]
+				wantContentEncodingHeader := tt.want.headers["Content-Encoding"]
 
 				// Если мы ожидаем сжатый в gzip ответ. Т.е. в HTTP Response пришел херед: "Content-Encoding: gzip"
 				// В этом случае нужно распаковать из gzip body и сравнить результат с ожидаемым
@@ -424,7 +424,7 @@ func TestController_GetUrlHandler(t *testing.T) {
 				resp, _ := testRequest(t, tt.request.httpMethod, tt.request.url, tt.request.body, map[string]string{})
 				defer resp.Body.Close() // go vet test from github
 
-				wantLocationHeader, _ := tt.want.headers["Location"]
+				wantLocationHeader := tt.want.headers["Location"]
 
 				assert.Equal(t, tt.want.statusCode, resp.StatusCode)
 				assert.Equal(t, wantLocationHeader, resp.Header.Get("Location"))
