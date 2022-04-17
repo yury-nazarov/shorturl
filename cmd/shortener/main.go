@@ -13,8 +13,6 @@ import (
 	appMiddleware "github.com/yury-nazarov/shorturl/internal/app/middleware"
 	"github.com/yury-nazarov/shorturl/internal/app/service"
 	"github.com/yury-nazarov/shorturl/internal/app/storage"
-	"github.com/yury-nazarov/shorturl/internal/app/storage/filedb"
-	"github.com/yury-nazarov/shorturl/internal/app/storage/inmemorydb"
 )
 
 func main() {
@@ -38,12 +36,7 @@ func main() {
 	dbFileName 		:= serverConfigInit(*fileStoragePathFlag, fileStoragePathEnv, "")
 
 	// Инициируем БД
-	var db storage.Repository
-	if len(dbFileName) == 0 {
-		db = inmemorydb.NewInMemoryDB()
-	} else {
-		db = filedb.NewFileDB(dbFileName)
-	}
+	db := storage.New(storage.DBConfig{FileName: dbFileName})
 
 	// Инициируем Router
 	r := chi.NewRouter()
