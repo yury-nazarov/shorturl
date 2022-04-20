@@ -2,18 +2,18 @@ package main
 
 import (
 	"flag"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"log"
 	"net/http"
 	"os"
-
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
 
 	"github.com/yury-nazarov/shorturl/internal/app/handler"
 	appMiddleware "github.com/yury-nazarov/shorturl/internal/app/middleware"
 	"github.com/yury-nazarov/shorturl/internal/app/service"
 	"github.com/yury-nazarov/shorturl/internal/app/storage"
 )
+
 
 func main() {
 	// Парсим аргументы командной строки
@@ -37,9 +37,11 @@ func main() {
 
 	// Инициируем БД
 	db := storage.New(storage.DBConfig{FileName: dbFileName})
+	//ctx := context.WithValue(context.Background(), "db", db)
 
 	// Инициируем Router
 	r := chi.NewRouter()
+
 
 	// зададим встроенные middleware, чтобы улучшить стабильность приложения
 	r.Use(middleware.RequestID)
@@ -49,11 +51,14 @@ func main() {
 	// Собственные middleware
 	r.Use(appMiddleware.HTTPResponseCompressor)
 	r.Use(appMiddleware.HTTPRequestDecompressor)
+	// Передае в middleware соеденение с БД
+	r.Use(appMiddleware.HTTPCookieAuth(db))
 
 	// Создаем объект для доступа к методам компрессии URL
 	lc := service.NewLinkCompressor(5, baseURL)
 	// Инициируем объект для доступа к хендлерам
 	c := handler.NewController(db, lc)
+
 
 	// API endpoints
 	r.HandleFunc("/", c.DefaultHandler)

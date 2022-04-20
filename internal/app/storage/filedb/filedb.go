@@ -10,8 +10,9 @@ import (
 
 // Record - описывает каждую запись в БД как json
 type record struct {
-	ShortURL  string `json:"short_url"`
-	OriginURL string `json:"origin_url"`
+	ShortURL  	string `json:"short_url"`
+	OriginURL 	string `json:"origin_url"`
+	Token 		string `json:"token"`
 }
 
 type fileDB struct {
@@ -29,11 +30,12 @@ func NewFileDB(fileName string) *fileDB {
 }
 
 // Add - добавляем запись в БД
-func (f *fileDB) Add(shortURL string, originURL string) error {
+func (f *fileDB) Add(shortURL string, originURL string, token string) error {
 	// Создаем новую запись как JSON объект
 	data := &record{
 		ShortURL:  shortURL,
 		OriginURL: originURL,
+		Token: token,
 	}
 	// Открываем файл на запись
 	p, err := newProducer(f.name)
@@ -73,6 +75,29 @@ func (f *fileDB) Get(shortURL string) (string, error) {
 		}
 		if err != nil {
 			return "", err
+		}
+	}
+}
+
+
+func (f *fileDB) GetToken(token string) (bool, error) {
+	// Открываем файл на чтение
+	c, err := newConsumer(f.name)
+	if err != nil {
+		return false, err
+	}
+	defer c.close()
+	// В цикле читаем каждую запись
+	for {
+		r, err := c.read()
+		if err == io.EOF {
+			return false, fmt.Errorf("the URL not found")
+		}
+		if r.Token == token {
+			return true, nil
+		}
+		if err != nil {
+			return false, err
 		}
 	}
 }

@@ -10,7 +10,7 @@ type DBConfig struct {
 	FileName string
 }
 
-func  New(conf DBConfig) Repository{
+func New(conf DBConfig) Repository{
 	if len(conf.FileName) != 0 {
 		return filedb.NewFileDB(conf.FileName)
 	}
