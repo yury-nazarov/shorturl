@@ -51,8 +51,11 @@ func (c *Controller) AddJSONURLHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Сокращаем url и добавляем в БД
 	shortURL := c.lc.SortURL(url.Request)
-	// TODO: Передать token
-	if err = c.db.Add(shortURL, url.Request, ""); err != nil {
+	token, err := r.Cookie("session_token")
+	if err != nil {
+		log.Print("AddURLHandler: err:",err)
+	}
+	if err = c.db.Add(shortURL, url.Request, token.Value); err != nil {
 		log.Print(err)
 	}
 
