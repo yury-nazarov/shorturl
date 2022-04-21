@@ -127,7 +127,7 @@ func (c *Controller) GetUserURLs(w http.ResponseWriter, r *http.Request) {
 	// Получаем токен из кук
 	token, err := r.Cookie("session_token")
 	if err != nil {
-		log.Print("AddURLHandler: err:",err)
+		log.Print("AddURLHandler: err:", err)
 	}
 
 	// Достаем из БД все записи по токену
@@ -142,13 +142,13 @@ func (c *Controller) GetUserURLs(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
-	// Указываем заголовки в зависмости от типа отдаваемого контента
-	w.Header().Add("Content-Type", "application/json")
 	if len(userURL) == 0 {
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}
 
+	// Указываем заголовки в зависмости от типа отдаваемого контента
+	w.Header().Add("Content-Type", "application/json")
 	// HTTP Response
 	w.WriteHeader(http.StatusOK)
 	_, err = w.Write(answer)
