@@ -60,6 +60,7 @@ func setCookieEncryptToken() *http.Cookie{
 	cookieToken := &http.Cookie{
 		Name: "session_token",
 		Value: sessionToken,
+		Secure: false,
 	}
 	return cookieToken
 }
