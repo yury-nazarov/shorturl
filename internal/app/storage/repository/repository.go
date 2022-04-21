@@ -11,5 +11,5 @@ type Repository interface {
 // RecordURL - Структура описывает возращаемые занчения для пакета repository
 type RecordURL struct {
 	ShortURL  	string `json:"short_url"`
-	OriginURL 	string `json:"origin_url"`
+	OriginURL 	string `json:"original_url"`
 }
