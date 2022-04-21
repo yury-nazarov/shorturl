@@ -129,8 +129,8 @@ func (c *Controller) GetUserURLs(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Print("AddURLHandler: err:",err)
 	}
-	// Достаем из БД все записи по токену
 
+	// Достаем из БД все записи по токену
 	userURL, err := c.db.GetUserURL(token.Value)
 	if err != nil {
 		log.Print(err)

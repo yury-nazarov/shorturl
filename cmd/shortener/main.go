@@ -7,7 +7,6 @@ import (
 	"os"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
 
 	"github.com/yury-nazarov/shorturl/internal/app/handler"
 	appMiddleware "github.com/yury-nazarov/shorturl/internal/app/middleware"
@@ -44,10 +43,10 @@ func main() {
 
 
 	// зададим встроенные middleware, чтобы улучшить стабильность приложения
-	r.Use(middleware.RequestID)
-	r.Use(middleware.RealIP)
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
+	//r.Use(middleware.RequestID)
+	//r.Use(middleware.RealIP)
+	//r.Use(middleware.Logger)
+	//r.Use(middleware.Recoverer)
 	// Собственные middleware
 	r.Use(appMiddleware.HTTPResponseCompressor)
 	r.Use(appMiddleware.HTTPRequestDecompressor)
@@ -62,10 +61,12 @@ func main() {
 
 	// API endpoints
 	r.HandleFunc("/", c.DefaultHandler)
-	r.Get("/api/user/urls", c.GetUserURLs)
-	r.Post("/api/shorten", c.AddJSONURLHandler)
-	r.Get("/{urlID}", c.GetURLHandler)
 	r.Post("/", c.AddURLHandler)
+	r.Get("/{urlID}", c.GetURLHandler)
+	r.Route("/api", func(r chi.Router) {
+		r.Get("/user/urls", c.GetUserURLs)
+		r.Post("/shorten", c.AddJSONURLHandler)
+	})
 
 	// Запускаем сервер
 	log.Fatal(http.ListenAndServe(serverAddress, r))
