@@ -43,7 +43,6 @@ func HTTPCookieAuth(db repository.Repository) func(next http.Handler) http.Handl
 			}
 
 			next.ServeHTTP(w, r)
-			return
 		}
 		return http.HandlerFunc(fn)
 	}
@@ -60,7 +59,7 @@ func setCookieEncryptToken() *http.Cookie{
 	cookieToken := &http.Cookie{
 		Name: "session_token",
 		Value: sessionToken,
-		Secure: false,
+		Secure: true,
 	}
 	return cookieToken
 }
