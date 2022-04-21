@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	"fmt"
+	"github.com/yury-nazarov/shorturl/internal/app/storage"
 	"io"
 	"io/ioutil"
 	"log"
@@ -20,9 +21,6 @@ import (
 
 	appMiddleware "github.com/yury-nazarov/shorturl/internal/app/middleware"
 	"github.com/yury-nazarov/shorturl/internal/app/service"
-	"github.com/yury-nazarov/shorturl/internal/app/storage"
-	"github.com/yury-nazarov/shorturl/internal/app/storage/filedb"
-	"github.com/yury-nazarov/shorturl/internal/app/storage/inmemorydb"
 )
 
 // NewTestServer - конфигурируем тестовый сервер,
@@ -30,17 +28,10 @@ func NewTestServer(dbName string) *httptest.Server {
 	// В дальнейшем на этот адрес/url будут завязаны тест кейсы
 	ServiceAddress := "127.0.0.1:8080"
 
-	r := chi.NewRouter()
+	// Инициируем БД
+	db := storage.New(storage.DBConfig{FileName: dbName})
 
-	var db storage.Repository
-	switch dbName {
-	case "fileDB":
-		db = filedb.NewFileDB("test_db.txt")
-	case "inMemoryDB":
-		db = inmemorydb.NewInMemoryDB()
-	default:
-		db = inmemorydb.NewInMemoryDB()
-	}
+	r := chi.NewRouter()
 
 	lc := service.NewLinkCompressor(5, fmt.Sprintf("http://%s", ServiceAddress))
 	c := NewController(db, lc)
@@ -48,6 +39,8 @@ func NewTestServer(dbName string) *httptest.Server {
 	// Собственные middleware для компрессии/декомпрессии
 	r.Use(appMiddleware.HTTPResponseCompressor)
 	r.Use(appMiddleware.HTTPRequestDecompressor)
+	// Передае в middleware соеденение с БД
+	r.Use(appMiddleware.HTTPCookieAuth(db))
 
 	// Handler routing
 	r.HandleFunc("/", c.DefaultHandler)

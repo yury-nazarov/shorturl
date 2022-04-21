@@ -8,11 +8,11 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/yury-nazarov/shorturl/internal/app/storage"
+	"github.com/yury-nazarov/shorturl/internal/app/storage/repository"
 )
 
 // HTTPCookieAuth - middleware - устанавливает подписаный токен для клиента, ели его нет.
-func HTTPCookieAuth(db storage.Repository) func(next http.Handler) http.Handler {
+func HTTPCookieAuth(db repository.Repository) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			// Получаем токен из Request

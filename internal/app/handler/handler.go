@@ -8,11 +8,11 @@ import (
 	"net/http"
 
 	"github.com/yury-nazarov/shorturl/internal/app/service"
-	"github.com/yury-nazarov/shorturl/internal/app/storage"
+	"github.com/yury-nazarov/shorturl/internal/app/storage/repository"
 )
 
 type Controller struct {
-	db storage.Repository
+	db repository.Repository
 	lc service.LinkCompressor
 }
 
@@ -22,7 +22,7 @@ type URL struct {
 }
 
 // NewController - вернет объект для доступа к хендлерам
-func NewController(db storage.Repository, lc service.LinkCompressor) *Controller {
+func NewController(db repository.Repository, lc service.LinkCompressor) *Controller {
 	c := &Controller{
 		db: db,
 		lc: lc,
@@ -120,6 +120,42 @@ func (c *Controller) GetURLHandler(w http.ResponseWriter, r *http.Request) {
 	// Отправляем ответ
 	w.Header().Set("Location", originURL)
 	w.WriteHeader(http.StatusTemporaryRedirect)
+}
+
+
+func (c *Controller) GetUserURLs(w http.ResponseWriter, r *http.Request) {
+	// Получаем токен из кук
+	token, err := r.Cookie("session_token")
+	if err != nil {
+		log.Print("AddURLHandler: err:",err)
+	}
+	// Достаем из БД все записи по токену
+
+	userURL, err := c.db.GetUserURL(token.Value)
+	if err != nil {
+		log.Print(err)
+	}
+
+	answer, err := json.Marshal(userURL)
+	if err != nil {
+		log.Print(err)
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	// Указываем заголовки в зависмости от типа отдаваемого контента
+	w.Header().Add("Content-Type", "application/json")
+	if len(userURL) == 0 {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+
+	// HTTP Response
+	w.WriteHeader(http.StatusOK)
+	_, err = w.Write(answer)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
 }
 
 func (c *Controller) DefaultHandler(w http.ResponseWriter, r *http.Request) {

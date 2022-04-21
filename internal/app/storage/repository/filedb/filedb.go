@@ -4,16 +4,24 @@ import (
 	"fmt"
 	"io"
 	"log"
+
+	"github.com/yury-nazarov/shorturl/internal/app/storage/repository"
 )
 
 // Хранение данных в файле
 
-// Record - описывает каждую запись в БД как json
+// record - описывает каждую запись в БД как json
 type record struct {
 	ShortURL  	string `json:"short_url"`
 	OriginURL 	string `json:"origin_url"`
 	Token 		string `json:"token"`
 }
+
+
+//type RecordURL struct {
+//	ShortUrl 	string	`json:"short_url"`
+//	OriginUrl 	string 	`json:"origin_url"`
+//}
 
 type fileDB struct {
 	name string
@@ -100,4 +108,31 @@ func (f *fileDB) GetToken(token string) (bool, error) {
 			return false, err
 		}
 	}
+}
+
+
+
+// GetUserURL - вернет слайс из структур со всем URL пользователя
+func (f *fileDB) GetUserURL(token string) ([]repository.RecordURL, error) {
+	// Открываем файл на чтение
+	c, err := newConsumer(f.name)
+	if err != nil {
+		return []repository.RecordURL{}, err
+		//return map[string]string{}, err
+	}
+	defer c.close()
+	// В цикле читаем каждую запись
+	var result []repository.RecordURL
+	for {
+		r, err := c.read()
+
+		if err == io.EOF {
+			break
+		}
+
+		if r.Token == token {
+			result = append(result, repository.RecordURL{ShortURL: r.ShortURL, OriginURL: r.OriginURL})
+		}
+	}
+	return result, nil
 }

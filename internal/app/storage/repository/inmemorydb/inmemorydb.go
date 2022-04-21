@@ -3,6 +3,8 @@ package inmemorydb
 import (
 	"fmt"
 	"strings"
+
+	"github.com/yury-nazarov/shorturl/internal/app/storage/repository"
 )
 
 // InMemoryDB - БД для URL
@@ -10,6 +12,11 @@ import (
 type URLInfo struct {
 	longURL string
 	token string
+}
+
+type RecordURL struct {
+	ShortUrl 	string	`json:"short_url"`
+	OriginUrl 	string 	`json:"origin_url"`
 }
 
 type inMemoryDB struct {
@@ -47,4 +54,17 @@ func (u *inMemoryDB) GetToken(token string) (bool, error) {
 		}
 	}
 	return false, nil
+}
+
+
+// GetUserURL - вернет все url для пользователя
+func (u *inMemoryDB) GetUserURL(token string) ([]repository.RecordURL, error) {
+	var result []repository.RecordURL
+	for k, urlInfo := range u.db {
+		// fmt.Println("inmemoryItem",  k, urlInfo)
+		if strings.Contains(token, urlInfo.token) {
+			result = append(result, repository.RecordURL{ShortURL: k, OriginURL: urlInfo.longURL})
+		}
+	}
+	return result, nil
 }

@@ -2,11 +2,12 @@ package main
 
 import (
 	"flag"
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 
 	"github.com/yury-nazarov/shorturl/internal/app/handler"
 	appMiddleware "github.com/yury-nazarov/shorturl/internal/app/middleware"
@@ -37,7 +38,6 @@ func main() {
 
 	// Инициируем БД
 	db := storage.New(storage.DBConfig{FileName: dbFileName})
-	//ctx := context.WithValue(context.Background(), "db", db)
 
 	// Инициируем Router
 	r := chi.NewRouter()
@@ -62,6 +62,7 @@ func main() {
 
 	// API endpoints
 	r.HandleFunc("/", c.DefaultHandler)
+	r.Get("/api/user/urls", c.GetUserURLs)
 	r.Post("/api/shorten", c.AddJSONURLHandler)
 	r.Get("/{urlID}", c.GetURLHandler)
 	r.Post("/", c.AddURLHandler)
