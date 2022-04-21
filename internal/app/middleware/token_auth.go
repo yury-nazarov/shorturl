@@ -15,6 +15,10 @@ import (
 func HTTPCookieAuth(db repository.Repository) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
+			if r.Method != http.MethodPost {
+				next.ServeHTTP(w, r)
+				return
+			}
 			// Получаем токен из Request
 			token, err := r.Cookie("session_token")
 			// Если токена нет
