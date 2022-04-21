@@ -14,11 +14,6 @@ type URLInfo struct {
 	token string
 }
 
-type RecordURL struct {
-	ShortUrl 	string	`json:"short_url"`
-	OriginUrl 	string 	`json:"origin_url"`
-}
-
 type inMemoryDB struct {
 	db map[string]URLInfo
 }
