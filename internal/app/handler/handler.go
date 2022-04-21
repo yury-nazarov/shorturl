@@ -127,7 +127,8 @@ func (c *Controller) GetUserURLs(w http.ResponseWriter, r *http.Request) {
 	// Получаем токен из кук
 	token, err := r.Cookie("session_token")
 	if err != nil {
-		log.Print("AddURLHandler: err:", err)
+		w.WriteHeader(http.StatusNoContent)
+		return
 	}
 
 	// Достаем из БД все записи по токену
