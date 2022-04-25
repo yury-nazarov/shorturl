@@ -205,7 +205,7 @@ func TestController_AddJSONURLHandler(t *testing.T) {
 	// Запускаем одинаковые тесты на разной конфигурации сервера: inMemoryDB, fileDB
 	tsDBName := []string{"inMemoryDB", "fileDB"}
 	for _, dbName := range tsDBName {
-		ts := NewTestServer(dbName)
+		ts := NewTestServer(dbName, "")
 		ts.Start()
 		for _, tt := range tests {
 			testName := fmt.Sprintf("%s: DB: %s", tt.name, dbName)
@@ -317,7 +317,7 @@ func TestController_AddUrlHandler(t *testing.T) {
 	// Запускаем одинаковые тесты на разной конфигурации сервера: inMemoryDB, fileDB
 	tsDBName := []string{"inMemoryDB", "fileDB"}
 	for _, dbName := range tsDBName {
-		ts := NewTestServer(dbName)
+		ts := NewTestServer(dbName, "")
 		ts.Start()
 		for _, tt := range tests {
 			testName := fmt.Sprintf("%s: DB: %s", tt.name, dbName)
@@ -411,7 +411,7 @@ func TestController_GetUrlHandler(t *testing.T) {
 	// Прогоняем одинаковые тесты на разной конфигурации сервера: inMemoryDB, fileDB
 	tsDBName := []string{"inMemoryDB", "fileDB"}
 	for _, dbName := range tsDBName {
-		ts := NewTestServer(dbName)
+		ts := NewTestServer(dbName, "")
 		ts.Start()
 		for _, tt := range tests {
 			testName := fmt.Sprintf("%s: DB: %s", tt.name, dbName)
@@ -473,7 +473,7 @@ func TestController_DefaultHandler(t *testing.T) {
 	// Прогоняем одинаковые тесты на разной конфигурации сервера: inMemoryDB, fileDB
 	tsDBName := []string{"inMemoryDB", "fileDB"}
 	for _, dbName := range tsDBName {
-		ts := NewTestServer(dbName)
+		ts := NewTestServer(dbName, "")
 		ts.Start()
 		for _, tt := range tests {
 			testName := fmt.Sprintf("%s: DB: %s", tt.name, dbName)
