@@ -3,8 +3,8 @@ package handler
 import (
 	"bytes"
 	"compress/gzip"
+	"context"
 	"fmt"
-	"github.com/yury-nazarov/shorturl/internal/app/storage"
 	"io"
 	"io/ioutil"
 	"log"
@@ -21,20 +21,22 @@ import (
 
 	appMiddleware "github.com/yury-nazarov/shorturl/internal/app/middleware"
 	"github.com/yury-nazarov/shorturl/internal/app/service"
+	"github.com/yury-nazarov/shorturl/internal/app/storage"
 )
 
 // NewTestServer - конфигурируем тестовый сервер,
-func NewTestServer(dbName string) *httptest.Server {
+func NewTestServer(dbName string, PGConnStr string) *httptest.Server {
 	// В дальнейшем на этот адрес/url будут завязаны тест кейсы
 	ServiceAddress := "127.0.0.1:8080"
-
-	// Инициируем БД
-	db := storage.New(storage.DBConfig{FileName: dbName})
 
 	r := chi.NewRouter()
 
 	lc := service.NewLinkCompressor(5, fmt.Sprintf("http://%s", ServiceAddress))
-	c := NewController(db, lc)
+
+	// Инициируем БД
+	ctx, _ := context.WithCancel(context.Background())
+	db := storage.New(storage.DBConfig{FileName: dbName, PGConnStr: PGConnStr, Ctx: ctx})
+	c := NewController(ctx, db, lc)
 
 	// Собственные middleware для компрессии/декомпрессии
 	r.Use(appMiddleware.HTTPResponseCompressor)
