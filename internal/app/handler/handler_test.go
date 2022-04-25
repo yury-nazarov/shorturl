@@ -34,7 +34,8 @@ func NewTestServer(dbName string, PGConnStr string) *httptest.Server {
 	lc := service.NewLinkCompressor(5, fmt.Sprintf("http://%s", ServiceAddress))
 
 	// Инициируем БД
-	ctx, _ := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	db := storage.New(storage.DBConfig{FileName: dbName, PGConnStr: PGConnStr, Ctx: ctx})
 	c := NewController(ctx, db, lc)
 
