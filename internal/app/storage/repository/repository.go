@@ -6,6 +6,7 @@ type Repository interface {
 	Get(shortPath string) (string, error)
 	GetToken(token string) (bool, error)
 	GetUserURL(token string) ([]RecordURL, error)
+	Ping() bool
 }
 
 // RecordURL - Структура описывает возращаемые занчения для пакета repository

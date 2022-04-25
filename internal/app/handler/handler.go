@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -14,6 +15,7 @@ import (
 type Controller struct {
 	db repository.Repository
 	lc service.LinkCompressor
+	ctx context.Context
 }
 
 type URL struct {
@@ -22,10 +24,11 @@ type URL struct {
 }
 
 // NewController - вернет объект для доступа к хендлерам
-func NewController(db repository.Repository, lc service.LinkCompressor) *Controller {
+func NewController(ctx context.Context, db repository.Repository, lc service.LinkCompressor) *Controller {
 	c := &Controller{
 		db: db,
 		lc: lc,
+		ctx: ctx,
 	}
 	return c
 }
@@ -161,4 +164,13 @@ func (c *Controller) GetUserURLs(w http.ResponseWriter, r *http.Request) {
 
 func (c *Controller) DefaultHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusBadRequest)
+}
+
+// PingDB - Проверка соединения с БД
+func (c *Controller) PingDB(w http.ResponseWriter, r *http.Request) {
+	if !c.db.Ping() {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
 }

@@ -63,3 +63,8 @@ func (u *inMemoryDB) GetUserURL(token string) ([]repository.RecordURL, error) {
 	}
 	return result, nil
 }
+
+
+func (u *inMemoryDB) Ping() bool {
+	return true
+}

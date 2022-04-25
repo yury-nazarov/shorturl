@@ -17,12 +17,6 @@ type record struct {
 	Token 		string `json:"token"`
 }
 
-
-//type RecordURL struct {
-//	ShortUrl 	string	`json:"short_url"`
-//	OriginUrl 	string 	`json:"origin_url"`
-//}
-
 type fileDB struct {
 	name string
 }
@@ -135,4 +129,9 @@ func (f *fileDB) GetUserURL(token string) ([]repository.RecordURL, error) {
 		}
 	}
 	return result, nil
+}
+
+func (f *fileDB) Ping() bool {
+	// TODO: Создать тестовый файл, записать в него, удалить
+	return true
 }
