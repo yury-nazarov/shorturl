@@ -41,7 +41,8 @@ func main() {
 	PGConnStr		:= serverConfigInit(*dataBaseStringFlag, dataBaseStringEnv, "")
 
 	// Инициируем БД
-	ctx, _ := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	db := storage.New(storage.DBConfig{FileName: dbFileName, PGConnStr: PGConnStr, Ctx: ctx})
 
 	// Инициируем Router
