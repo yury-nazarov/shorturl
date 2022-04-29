@@ -6,6 +6,7 @@ import (
 	"github.com/yury-nazarov/shorturl/internal/app/storage/repository/filedb"
 	"github.com/yury-nazarov/shorturl/internal/app/storage/repository/inmemorydb"
 	"github.com/yury-nazarov/shorturl/internal/app/storage/repository/pg"
+	"log"
 )
 
 
@@ -28,10 +29,16 @@ type Record struct {
 //		 3. Inmemory
 func New(conf DBConfig) repository.Repository {
 	if len(conf.PGConnStr) != 0 {
-		return pg.New(conf.Ctx, conf.PGConnStr)
+		// Создаем экземпляр подключения к БД и инициируем схему, если её нет
+		db := pg.New(conf.Ctx, conf.PGConnStr)
+		db.SchemeInit()
+		log.Println("DB Postgres is connecting")
+		return db
 	}
 	if len(conf.FileName) != 0 {
+		log.Println("DB File is connecting")
 		return filedb.NewFileDB(conf.FileName)
 	}
+	log.Println("DB InMemory is connecting")
 	return inmemorydb.NewInMemoryDB()
 }

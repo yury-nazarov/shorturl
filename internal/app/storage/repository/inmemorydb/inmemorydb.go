@@ -27,16 +27,16 @@ func NewInMemoryDB() *inMemoryDB {
 }
 
 // Add Добавляет новый url в БД
-func (u *inMemoryDB) Add(shortPath string, longURL string, token string) error {
-	u.db[shortPath] = URLInfo{longURL: longURL, token: token}
+func (u *inMemoryDB) Add(shortURL string, longURL string, token string) error {
+	u.db[shortURL] = URLInfo{longURL: longURL, token: token}
 	return nil
 }
 
 // Get Достает из БД URL
-func (u *inMemoryDB) Get(shortPath string) (string, error) {
-	urlInfo, ok := u.db[shortPath]
+func (u *inMemoryDB) Get(shortURL string) (string, error) {
+	urlInfo, ok := u.db[shortURL]
 	if !ok {
-		return "", fmt.Errorf("shorturl %s not found", shortPath)
+		return "", fmt.Errorf("shorturl %s not found", shortURL)
 	}
 	return urlInfo.longURL, nil
 }

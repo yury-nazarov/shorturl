@@ -2,8 +2,8 @@ package repository
 
 // Repository - общее представление интерфейса для работы с БД
 type Repository interface {
-	Add(shortPath string, longURL string, token string) error
-	Get(shortPath string) (string, error)
+	Add(shortURL string, longURL string, token string) error
+	Get(shortURL string) (string, error)
 	GetToken(token string) (bool, error)
 	GetUserURL(token string) ([]RecordURL, error)
 	Ping() bool

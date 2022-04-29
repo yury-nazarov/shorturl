@@ -2,6 +2,7 @@ package pg
 
 import (
 	"context"
+	"fmt"
 	"log"
 
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -31,21 +32,107 @@ func New(ctx context.Context, connStr string) *pg {
 	return dbPoolConnect
 }
 
+// SchemeInit Создает таблицы в БД если они не созданы.
+func (p *pg) SchemeInit(){
+	_, err := p.db.Exec(p.ctx, `CREATE TABLE IF NOT EXISTS shorten_url (
+                          id serial PRIMARY KEY,
+						  short_url  VARCHAR (255) NOT NULL,
+						  long_url VARCHAR (255) NOT NULL,
+						  token_id INT NOT NULL)`)
+	if err != nil {
+		log.Fatal(err)
+	}
+	_, err = p.db.Exec(p.ctx, `CREATE TABLE IF NOT EXISTS users (
+                          id serial PRIMARY KEY,
+						  token  VARCHAR (255) NOT NULL)`)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
 
-func (p *pg) Add(shortPath string, longURL string, token string) error {
+
+type User struct {
+	id int
+	token string
+}
+
+type ShortenUrl struct {
+	id int
+	shortURL string
+	longUrl string
+}
+
+// Add - добавляет новую запись в тадлицу: shorten_url
+func (p *pg) Add(shortURL string, longURL string, token string) error {
+	user := User{}
+	// Проверяем наличие пользователя в БД с определенным token, получаем id для дальнейшего insert
+	if err := p.db.QueryRow(p.ctx, `SELECT id FROM users WHERE token=$1 LIMIT 1;`, token).Scan(&user.id); err != nil {
+		log.Printf("sql select token err: %s", err)
+	}
+
+	// Если пользователя нет, добавляем токен в БД и получаем его id для дальнейшего insert
+	if user.id == 0 {
+		if err := p.db.QueryRow(p.ctx, `INSERT INTO users (token) VALUES ($1) RETURNING id;`, token).Scan(&user.id); err != nil {
+			return fmt.Errorf("sql insert into token err: %s", err)
+		}
+		log.Printf("token '%s' was added into DB with 'id'=%d", token, user.id)
+	}
+
+	// Добавляем в БД shortURL, longURL, token
+	newUrl := ShortenUrl{}
+	if err := p.db.QueryRow(p.ctx, `INSERT INTO shorten_url (short_url, long_url, token_id) VALUES ($1, $2, $3) RETURNING id;`, shortURL, longURL, user.id).Scan(&newUrl.id); err != nil {
+		return fmt.Errorf("sql insert into shorten_url err: %s", err)
+	}
+	log.Printf("shorten_urecord short_url:'%s', long_url:'%s', token_id: '%s' was added into shorten_url with 'id'=%d", shortURL, longURL, token, newUrl.id)
+
 	return nil
 }
 
-func (p *pg) Get(shortPath string) (string, error) {
-	return "", nil
+// Get - Возвращает оригинальный long_url из таблицы shorten_url
+func (p *pg) Get(shortURL string) (string, error) {
+	url := ShortenUrl{}
+	if err := p.db.QueryRow(p.ctx, `SELECT long_url FROM shorten_url WHERE short_url=$1 LIMIT 1`, shortURL).Scan(&url.longUrl); err != nil {
+		return "", fmt.Errorf("url not found: %s", err)
+	}
+	return url.longUrl, nil
 }
 
+// GetToken - Проверяет наличие токена в БД
 func (p *pg) GetToken(token string) (bool, error) {
+	user := User{}
+	if err := p.db.QueryRow(p.ctx, `SELECT id FROM users WHERE token=$1 LIMIT 1;`, token).Scan(&user.id); err != nil {
+		return false, fmt.Errorf("token not found: %s", err)
+	}
 	return true, nil
 }
 
+// GetUserURL - Возвращает все url из таблицы shorten_url, для конкретного token
 func (p *pg) GetUserURL(token string) ([]repository.RecordURL, error) {
-	return []repository.RecordURL{}, nil
+	var urls []repository.RecordURL
+
+	// Проверяем наличие пользователя в БД с определенным token, получаем id для дальнейшего select
+	user := User{}
+	if err := p.db.QueryRow(p.ctx, `SELECT id FROM users WHERE token=$1 LIMIT 1;`, token).Scan(&user.id); err != nil {
+		log.Printf("sql select token err: %s", err)
+	}
+
+	if user.id == 0 {
+		return urls, fmt.Errorf("user with token: %s not exist", token)
+	}
+
+	rows, err := p.db.Query(p.ctx, `SELECT short_url, long_url FROM shorten_url WHERE token_id=$1`, user.id)
+	if err != nil {
+		return urls, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		url := repository.RecordURL{}
+		rows.Scan(&url.ShortURL, &url.OriginURL)
+		fmt.Print(url)
+		urls = append(urls, url)
+	}
+	return urls, nil
 }
 
 func (p *pg) Ping() bool {

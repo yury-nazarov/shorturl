@@ -112,7 +112,6 @@ func (f *fileDB) GetUserURL(token string) ([]repository.RecordURL, error) {
 	c, err := newConsumer(f.name)
 	if err != nil {
 		return []repository.RecordURL{}, err
-		//return map[string]string{}, err
 	}
 	defer c.close()
 	// В цикле читаем каждую запись
