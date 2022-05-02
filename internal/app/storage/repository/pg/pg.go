@@ -56,10 +56,10 @@ type User struct {
 	token string
 }
 
-type ShortenUrl struct {
+type ShortenURL struct {
 	id int
 	shortURL string
-	longUrl string
+	longURL string
 }
 
 // Add - добавляет новую запись в тадлицу: shorten_url
@@ -79,7 +79,7 @@ func (p *pg) Add(shortURL string, longURL string, token string) error {
 	}
 
 	// Добавляем в БД shortURL, longURL, token
-	newUrl := ShortenUrl{}
+	newUrl := ShortenURL{}
 	if err := p.db.QueryRow(p.ctx, `INSERT INTO shorten_url (short_url, long_url, token_id) VALUES ($1, $2, $3) RETURNING id;`, shortURL, longURL, user.id).Scan(&newUrl.id); err != nil {
 		return fmt.Errorf("sql insert into shorten_url err: %s", err)
 	}
@@ -90,11 +90,11 @@ func (p *pg) Add(shortURL string, longURL string, token string) error {
 
 // Get - Возвращает оригинальный long_url из таблицы shorten_url
 func (p *pg) Get(shortURL string) (string, error) {
-	url := ShortenUrl{}
-	if err := p.db.QueryRow(p.ctx, `SELECT long_url FROM shorten_url WHERE short_url=$1 LIMIT 1`, shortURL).Scan(&url.longUrl); err != nil {
+	url := ShortenURL{}
+	if err := p.db.QueryRow(p.ctx, `SELECT long_url FROM shorten_url WHERE short_url=$1 LIMIT 1`, shortURL).Scan(&url.longURL); err != nil {
 		return "", fmt.Errorf("url not found: %s", err)
 	}
-	return url.longUrl, nil
+	return url.longURL, nil
 }
 
 // GetToken - Проверяет наличие токена в БД
