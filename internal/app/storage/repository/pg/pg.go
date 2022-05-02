@@ -79,11 +79,11 @@ func (p *pg) Add(shortURL string, longURL string, token string) error {
 	}
 
 	// Добавляем в БД shortURL, longURL, token
-	newUrl := ShortenURL{}
-	if err := p.db.QueryRow(p.ctx, `INSERT INTO shorten_url (short_url, long_url, token_id) VALUES ($1, $2, $3) RETURNING id;`, shortURL, longURL, user.id).Scan(&newUrl.id); err != nil {
+	newURL := ShortenURL{}
+	if err := p.db.QueryRow(p.ctx, `INSERT INTO shorten_url (short_url, long_url, token_id) VALUES ($1, $2, $3) RETURNING id;`, shortURL, longURL, user.id).Scan(&newURL.id); err != nil {
 		return fmt.Errorf("sql insert into shorten_url err: %s", err)
 	}
-	log.Printf("shorten_urecord short_url:'%s', long_url:'%s', token_id: '%s' was added into shorten_url with 'id'=%d", shortURL, longURL, token, newUrl.id)
+	log.Printf("shorten_urecord short_url:'%s', long_url:'%s', token_id: '%s' was added into shorten_url with 'id'=%d", shortURL, longURL, token, newURL.id)
 
 	return nil
 }
