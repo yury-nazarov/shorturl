@@ -25,7 +25,7 @@ type URL struct {
 
 
 type URLBatch struct {
-	CorrelationId 	string `json:"correlation_id"`
+	CorrelationID 	string `json:"correlation_id"`
 	OriginalURL 	string `json:"original_url,omitempty"`
 	ShortURL 		string `json:"short_url,omitempty"`
 }
@@ -208,7 +208,7 @@ func (c *Controller) AddJSONURLBatchHandler(w http.ResponseWriter, r *http.Reque
 
 		// Сразу подготавливаем слайс для ответа пользователю
 		response = append(response, URLBatch{
-			CorrelationId: item.CorrelationId,
+			CorrelationID: item.CorrelationID,
 			ShortURL: shortURL,
 		})
 	}
