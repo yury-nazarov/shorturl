@@ -200,11 +200,18 @@ func (c *Controller) AddJSONURLBatchHandler(w http.ResponseWriter, r *http.Reque
 	if err = json.Unmarshal(bodyData, &urls); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 	}
-	var response []URLBatch
 
-	// Сокращаем url и добавляем в БД
+	// Сокращаем url и добавляем в БД, подготавливаем ответ
+	var response []URLBatch
 	for _, item := range urls {
 		shortURL := c.lc.SortURL(item.OriginalURL)
+		token, err := r.Cookie("session_token")
+		if err != nil {
+			log.Print("AddURLHandler: err:",err)
+		}
+		if err = c.db.Add(shortURL, item.OriginalURL, token.Value); err != nil {
+			log.Print(err)
+		}
 
 		// Сразу подготавливаем слайс для ответа пользователю
 		response = append(response, URLBatch{
