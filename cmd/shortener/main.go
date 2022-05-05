@@ -72,7 +72,10 @@ func main() {
 	r.Get("/{urlID}", c.GetURLHandler)
 	r.Route("/api", func(r chi.Router) {
 		r.Get("/user/urls", c.GetUserURLs)
-		r.Post("/shorten", c.AddJSONURLHandler)
+		r.Route("/shorten", func(r chi.Router) {
+			r.Post("/", c.AddJSONURLHandler)
+			r.Post("/batch", c.AddJSONURLBatchHandler)
+		})
 	})
 	r.HandleFunc("/ping", c.PingDB)
 

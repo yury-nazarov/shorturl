@@ -23,6 +23,13 @@ type URL struct {
 	Response string `json:"result,omitempty"` // Не учитываем поле при Unmarshal
 }
 
+
+type URLBatch struct {
+	CorrelationId 	string `json:"correlation_id"`
+	OriginalURL 	string `json:"original_url,omitempty"`
+	ShortURL 		string `json:"short_url,omitempty"`
+}
+
 // NewController - вернет объект для доступа к хендлерам
 func NewController(ctx context.Context, db repository.Repository, lc service.LinkCompressor) *Controller {
 	c := &Controller{
@@ -173,4 +180,53 @@ func (c *Controller) PingDB(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusOK)
+}
+
+func (c *Controller) AddJSONURLBatchHandler(w http.ResponseWriter, r *http.Request) {
+	// Читаем присланые данные
+	bodyData, err := io.ReadAll(r.Body)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	// Проверяем пустой Body
+	if len(bodyData) == 0 {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	// Unmarshal JSON
+	var urls []URLBatch
+	if err = json.Unmarshal(bodyData, &urls); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+	}
+	var response []URLBatch
+
+	// Сокращаем url и добавляем в БД
+	for _, item := range urls {
+		shortURL := c.lc.SortURL(item.OriginalURL)
+
+		// Сразу подготавливаем слайс для ответа пользователю
+		response = append(response, URLBatch{
+			CorrelationId: item.CorrelationId,
+			ShortURL: shortURL,
+		})
+	}
+
+	// Сериализуем ответ
+	jsonShortURL, err := json.Marshal(response)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	// Указываем заголовки в зависмости от типа контента
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+
+	// HTTP Response
+	_, err = w.Write(jsonShortURL)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
 }
