@@ -134,3 +134,7 @@ func (f *fileDB) Ping() bool {
 	// TODO: Создать тестовый файл, записать в него, удалить
 	return true
 }
+
+func (f *fileDB) OriginUrlExists(originURL string) (bool, error) {
+	return false, nil
+}

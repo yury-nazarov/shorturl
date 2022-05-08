@@ -31,7 +31,9 @@ func New(conf DBConfig) repository.Repository {
 	if len(conf.PGConnStr) != 0 {
 		// Создаем экземпляр подключения к БД и инициируем схему, если её нет
 		db := pg.New(conf.Ctx, conf.PGConnStr)
-		db.SchemeInit()
+		if err := db.SchemeInit(); err != nil {
+			log.Fatal(err)
+		}
 		log.Println("DB Postgres is connecting")
 		return db
 	}

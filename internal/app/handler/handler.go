@@ -58,6 +58,11 @@ func (c *Controller) AddJSONURLHandler(w http.ResponseWriter, r *http.Request) {
 	if err = json.Unmarshal(bodyData, &url); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 	}
+	// Проверяем если в БД уже есть оригинальный URL, нуже для верной установки заголовков ответа
+	originURLExists, err := c.db.OriginUrlExists(url.Request)
+	if err != nil {
+		log.Print("OriginUrlExists: ", err)
+	}
 
 	// Сокращаем url и добавляем в БД
 	shortURL := c.lc.SortURL(url.Request)
@@ -77,7 +82,11 @@ func (c *Controller) AddJSONURLHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Указываем заголовки в зависмости от типа контента
 	w.Header().Add("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
+	if originURLExists {
+		w.WriteHeader(http.StatusConflict)
+	} else {
+		w.WriteHeader(http.StatusCreated)
+	}
 
 	// HTTP Response
 	_, err = w.Write(jsonShortURL)
@@ -99,8 +108,13 @@ func (c *Controller) AddURLHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Сокращаем url и добавляем в БД: сокращенный url, оригинальный url, token идентификатор пользователя
+	// Проверяем если в БД уже есть оригинальный URL, нуже для верной установки заголовков ответа
 	originURL := string(bodyData)
+	originURLExists, err := c.db.OriginUrlExists(originURL)
+	if err != nil {
+		log.Print("OriginUrlExists: ", err)
+	}
+	// Сокращаем url и добавляем в БД: сокращенный url, оригинальный url, token идентификатор пользователя
 	shortURL := c.lc.SortURL(originURL)
 	token, err := r.Cookie("session_token")
 	if err != nil {
@@ -112,7 +126,11 @@ func (c *Controller) AddURLHandler(w http.ResponseWriter, r *http.Request) {
 
 	// HTTP Response
 	w.Header().Add("Content-Type", "text/plain")
-	w.WriteHeader(http.StatusCreated)
+	if originURLExists {
+		w.WriteHeader(http.StatusConflict)
+	} else {
+		w.WriteHeader(http.StatusCreated)
+	}
 	_, err = w.Write([]byte(shortURL))
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)

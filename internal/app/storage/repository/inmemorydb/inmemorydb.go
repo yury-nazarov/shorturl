@@ -68,3 +68,7 @@ func (u *inMemoryDB) GetUserURL(token string) ([]repository.RecordURL, error) {
 func (u *inMemoryDB) Ping() bool {
 	return true
 }
+
+func (u *inMemoryDB) OriginUrlExists(originURL string) (bool, error) {
+	return false, nil
+}
