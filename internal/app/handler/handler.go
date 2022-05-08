@@ -59,9 +59,9 @@ func (c *Controller) AddJSONURLHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 	}
 	// Проверяем если в БД уже есть оригинальный URL, нуже для верной установки заголовков ответа
-	originURLExists, err := c.db.OriginUrlExists(url.Request)
+	originURLExists, err := c.db.OriginURLExists(url.Request)
 	if err != nil {
-		log.Print("OriginUrlExists: ", err)
+		log.Print("OriginURLExists: ", err)
 	}
 
 	// Сокращаем url и добавляем в БД
@@ -110,9 +110,9 @@ func (c *Controller) AddURLHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Проверяем если в БД уже есть оригинальный URL, нуже для верной установки заголовков ответа
 	originURL := string(bodyData)
-	originURLExists, err := c.db.OriginUrlExists(originURL)
+	originURLExists, err := c.db.OriginURLExists(originURL)
 	if err != nil {
-		log.Print("OriginUrlExists: ", err)
+		log.Print("OriginURLExists: ", err)
 	}
 	// Сокращаем url и добавляем в БД: сокращенный url, оригинальный url, token идентификатор пользователя
 	shortURL := c.lc.SortURL(originURL)

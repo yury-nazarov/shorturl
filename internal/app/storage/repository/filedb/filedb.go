@@ -135,6 +135,6 @@ func (f *fileDB) Ping() bool {
 	return true
 }
 
-func (f *fileDB) OriginUrlExists(originURL string) (bool, error) {
+func (f *fileDB) OriginURLExists(originURL string) (bool, error) {
 	return false, nil
 }

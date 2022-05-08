@@ -7,7 +7,7 @@ type Repository interface {
 	GetToken(token string) (bool, error)
 	GetUserURL(token string) ([]RecordURL, error)
 	Ping() bool
-	OriginUrlExists(originURL string) (bool, error)
+	OriginURLExists(originURL string) (bool, error)
 }
 
 // RecordURL - Структура описывает возращаемые занчения для пакета repository

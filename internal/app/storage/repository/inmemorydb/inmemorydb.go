@@ -69,6 +69,6 @@ func (u *inMemoryDB) Ping() bool {
 	return true
 }
 
-func (u *inMemoryDB) OriginUrlExists(originURL string) (bool, error) {
+func (u *inMemoryDB) OriginURLExists(originURL string) (bool, error) {
 	return false, nil
 }

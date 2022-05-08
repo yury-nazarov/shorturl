@@ -159,7 +159,7 @@ func (p *pg) GetUserURL(token string) ([]repository.RecordURL, error) {
 		rows.Scan(&url.id)
 
 		// Получаем из БД пару URL: origin, short и добавляем  результирующий слайс
-		ownerURL, err := p.getURLById(url.id)
+		ownerURL, err := p.getURLByID(url.id)
 		if err != nil {
 			return urls, err
 		}
@@ -176,8 +176,8 @@ func (p *pg) Ping() bool {
 	return true
 }
 
-// getURLById - по ID получаем пару URL: origin, short
-func (p *pg) getURLById(id int) (repository.RecordURL, error) {
+// getURLByID - по ID получаем пару URL: origin, short
+func (p *pg) getURLByID(id int) (repository.RecordURL, error) {
 	url := repository.RecordURL{}
 	if err := p.db.QueryRow(p.ctx, `SELECT origin, short FROM url WHERE id=$1 LIMIT 1`, id).Scan(&url.OriginURL, &url.ShortURL); err != nil {
 		return url, err
@@ -196,8 +196,8 @@ func (p *pg) ownerTokenExist(token string) Owner {
 	return owner
 }
 
-// OriginUrlExists - проверяет наличие URL в БД
-func (p *pg) OriginUrlExists(originURL string) (bool, error) {
+// OriginURLExists - проверяет наличие URL в БД
+func (p *pg) OriginURLExists(originURL string) (bool, error) {
 	url := URL{}
 	err := p.db.QueryRow(p.ctx, `SELECT origin FROM url WHERE origin=$1 LIMIT 1`, originURL).Scan(&url.origin)
 	if err != nil {
