@@ -18,6 +18,10 @@ import (
 
 
 func main() {
+	run()
+}
+
+func run() {
 	// Парсим аргументы командной строки
 	serverAddressFlag 	:= flag.String("a", "", "set server address, by example: 127.0.0.1:8080")
 	baseURLFlag 		:= flag.String("b", "", "set base URL, by example: http://127.0.0.1:8080")
