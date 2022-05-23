@@ -18,8 +18,8 @@ type pg struct {
 // New - врнет ссылку на пулл соединений с PG
 func New(ctx context.Context, connStr string) *pg {
 	poolConfig, _ := pgxpool.ParseConfig(connStr)
-	poolConfig.MinConns = 10
-	poolConfig.MaxConns = 10
+	poolConfig.MinConns = 5
+	poolConfig.MaxConns = 5
 
 	pool, err := pgxpool.ConnectConfig(ctx, poolConfig)
 	if err != nil {
@@ -39,7 +39,8 @@ func (p *pg) SchemeInit() error {
 	_, err := p.db.Exec(p.ctx, `CREATE TABLE IF NOT EXISTS shorten_url (
                           id serial PRIMARY KEY,
 						  url INT NOT NULL,
-						  owner INT NOT NULL)`)
+						  owner INT NOT NULL,
+						  delete BOOLEAN DEFAULT FALSE)`)
 	if err != nil {
 		return fmt.Errorf("create table `shorten_url`: %w", err)
 	}
