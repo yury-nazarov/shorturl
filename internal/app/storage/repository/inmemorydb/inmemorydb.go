@@ -64,11 +64,19 @@ func (u *inMemoryDB) GetUserURL(token string) ([]repository.RecordURL, error) {
 	return result, nil
 }
 
-
+// Ping Для обратной совместимости с Postgres
 func (u *inMemoryDB) Ping() bool {
 	return true
 }
 
+// OriginURLExists Для обратной совместимости с Postgres
 func (u *inMemoryDB) OriginURLExists(originURL string) (bool, error) {
 	return false, nil
+}
+
+// GetOwnerToken Для обратной совместимости с Postgres
+func (u *inMemoryDB) GetOwnerToken(token string) repository.Owner {
+	owner := repository.Owner{}
+
+	return owner
 }

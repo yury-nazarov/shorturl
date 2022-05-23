@@ -130,11 +130,20 @@ func (f *fileDB) GetUserURL(token string) ([]repository.RecordURL, error) {
 	return result, nil
 }
 
+// Ping Для обратной совместимости с Postgres
 func (f *fileDB) Ping() bool {
 	// TODO: Создать тестовый файл, записать в него, удалить
 	return true
 }
 
+// OriginURLExists Для обратной совместимости с Postgres
 func (f *fileDB) OriginURLExists(originURL string) (bool, error) {
 	return false, nil
+}
+
+// GetOwnerToken Для обратной совместимости с Postgres
+func (f *fileDB) GetOwnerToken(token string) repository.Owner {
+	owner := repository.Owner{}
+
+	return owner
 }

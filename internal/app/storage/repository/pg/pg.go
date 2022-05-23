@@ -71,11 +71,11 @@ func (p *pg) SchemeInit() error {
 	return nil
 }
 
-// Owner Представление таблицы shorten_url.owner
-type Owner struct {
-	id int
-	token string
-}
+//// Owner Представление таблицы shorten_url.owner
+//type Owner struct {
+//	id int
+//	token string
+//}
 
 // URL - представление объекта URL
 type URL struct {
@@ -87,14 +87,15 @@ type URL struct {
 // Add - добавляет новую запись в таблицу: shorten_url
 func (p *pg) Add(shortURL string, longURL string, token string) error {
 	// Проверяем наличие пользователя в БД с определенным token, получаем id для дальнейшего insert
-	owner := p.ownerTokenExist(token)
+
+	owner := p.GetOwnerToken(token)
 
 	// Если пользователя нет, добавляем токен в БД и получаем его id для дальнейшего insert
-	if owner.id == 0 {
-		if err := p.db.QueryRow(p.ctx, `INSERT INTO owner (token) VALUES ($1) RETURNING id;`, token).Scan(&owner.id); err != nil {
+	if owner.ID == 0 {
+		if err := p.db.QueryRow(p.ctx, `INSERT INTO owner (token) VALUES ($1) RETURNING id;`, token).Scan(&owner.ID); err != nil {
 			return fmt.Errorf("sql insert into token err: %w", err)
 		}
-		log.Printf("token '%s' was added into DB with 'id'=%d", token, owner.id)
+		log.Printf("token '%s' was added into DB with 'id'=%d", token, owner.ID)
 	}
 
 	// Добавляем URL
@@ -109,7 +110,7 @@ func (p *pg) Add(shortURL string, longURL string, token string) error {
 	}
 
 	// Добавляем owner.id, url.id в общую таблицу
-	_, err = p.db.Exec(p.ctx, `INSERT INTO shorten_url (url, owner) VALUES ($1, $2);`, url.id, owner.id)
+	_, err = p.db.Exec(p.ctx, `INSERT INTO shorten_url (url, owner) VALUES ($1, $2);`, url.id, owner.ID)
 	if err != nil {
 		return fmt.Errorf("sql insert into table `shorten_url`: %w", err)
 	}
@@ -128,12 +129,13 @@ func (p *pg) Get(shortURL string) (string, error) {
 
 // GetToken - Проверяет наличие токена в БД
 func (p *pg) GetToken(token string) (bool, error) {
-	owner := Owner{}
-	if err := p.db.QueryRow(p.ctx, `SELECT id FROM owner WHERE token=$1 LIMIT 1;`, token).Scan(&owner.id); err != nil {
+	owner := repository.Owner{}
+	if err := p.db.QueryRow(p.ctx, `SELECT id FROM owner WHERE token=$1 LIMIT 1;`, token).Scan(&owner.ID); err != nil {
 		return false, fmt.Errorf("token not found: %w", err)
 	}
 	return true, nil
 }
+
 
 // GetUserURL - Возвращает все url для конкретного token
 func (p *pg) GetUserURL(token string) ([]repository.RecordURL, error) {
@@ -141,13 +143,13 @@ func (p *pg) GetUserURL(token string) ([]repository.RecordURL, error) {
 	var urls []repository.RecordURL
 
 	// Проверяем наличие пользователя в БД с определенным token, получаем id для дальнейшего select
-	owner := p.ownerTokenExist(token)
-	if owner.id == 0 {
+	owner := p.GetOwnerToken(token)
+	if owner.ID == 0 {
 		return urls, fmt.Errorf("owner with token: %s not exist", token)
 	}
 
 	// Получаем все id для url для конкретного owner
-	rows, err := p.db.Query(p.ctx, `SELECT url FROM shorten_url WHERE owner=$1`, owner.id)
+	rows, err := p.db.Query(p.ctx, `SELECT url FROM shorten_url WHERE owner=$1`, owner.ID)
 	if err != nil {
 		return urls, err
 	}
@@ -186,16 +188,26 @@ func (p *pg) getURLByID(id int) (repository.RecordURL, error) {
 	return url, nil
 }
 
-// Получает информацию о пользователе из БД по токену
+// GetOwnerToken Получает информацию о пользователе из БД по токену
 // Если пользователя не существует, вернет структуру Owner с дефолтными значениями полей
-func (p *pg) ownerTokenExist(token string) Owner {
-	owner := Owner{}
+func (p *pg) GetOwnerToken(token string) repository.Owner {
+	owner := repository.Owner{}
 	// Проверяем наличие пользователя в БД с определенным token
-	if err := p.db.QueryRow(p.ctx, `SELECT id FROM owner WHERE token=$1 LIMIT 1;`, token).Scan(&owner.id); err != nil {
+	if err := p.db.QueryRow(p.ctx, `SELECT id FROM owner WHERE token=$1 LIMIT 1;`, token).Scan(&owner.ID); err != nil {
 		log.Printf("sql select token err: %s", err)
 	}
 	return owner
 }
+
+//func (p *pg) ownerTokenExist(token string) Owner {
+//	owner := Owner{}
+//	// Проверяем наличие пользователя в БД с определенным token
+//	if err := p.db.QueryRow(p.ctx, `SELECT id FROM owner WHERE token=$1 LIMIT 1;`, token).Scan(&owner.id); err != nil {
+//		log.Printf("sql select token err: %s", err)
+//	}
+//	return owner
+//}
+
 
 // OriginURLExists - проверяет наличие URL в БД
 func (p *pg) OriginURLExists(originURL string) (bool, error) {
