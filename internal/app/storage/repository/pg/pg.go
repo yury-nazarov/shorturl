@@ -82,14 +82,13 @@ type URL struct {
 	id int
 	shortURL string // TODO: shortURL -> short
 	origin string
+	delete bool // default false
 }
 
 // Add - добавляет новую запись в таблицу: shorten_url
 func (p *pg) Add(shortURL string, longURL string, token string) error {
 	// Проверяем наличие пользователя в БД с определенным token, получаем id для дальнейшего insert
-
 	owner := p.GetOwnerToken(token)
-
 	// Если пользователя нет, добавляем токен в БД и получаем его id для дальнейшего insert
 	if owner.ID == 0 {
 		if err := p.db.QueryRow(p.ctx, `INSERT INTO owner (token) VALUES ($1) RETURNING id;`, token).Scan(&owner.ID); err != nil {
@@ -98,7 +97,7 @@ func (p *pg) Add(shortURL string, longURL string, token string) error {
 		log.Printf("token '%s' was added into DB with 'id'=%d", token, owner.ID)
 	}
 
-	// Добавляем URL
+	// Добавляем URL если нет
 	url := URL{}
 	//  Выполнит INSERT и вернет id добавленой записи, либо обновит существующую запись и вернет ее id
 	err := p.db.QueryRow(p.ctx, `INSERT INTO url (origin, short) 
@@ -109,22 +108,50 @@ func (p *pg) Add(shortURL string, longURL string, token string) error {
 		return fmt.Errorf("sql insert into url: %w", err)
 	}
 
-	// Добавляем owner.id, url.id в общую таблицу
-	_, err = p.db.Exec(p.ctx, `INSERT INTO shorten_url (url, owner) VALUES ($1, $2);`, url.id, owner.ID)
+	// Проверяем наличие записи, что бы не было дублей
+	var existID int
+	err = p.db.QueryRow(p.ctx, `SELECT id FROM shorten_url WHERE url=$1 AND owner=$2`, url.id, owner.ID).Scan(&existID)
 	if err != nil {
-		return fmt.Errorf("sql insert into table `shorten_url`: %w", err)
+		log.Printf("sql check record err:", err)
+	}
+	log.Println("existID:", existID)
+
+	// выполняем только в том случае, если записи в БД нет
+	if existID == 0 {
+		// Добавляем owner.id, url.id в общую таблицу
+		_, err = p.db.Exec(p.ctx, `INSERT INTO shorten_url (url, owner) VALUES ($1, $2);`, url.id, owner.ID)
+		if err != nil {
+			return fmt.Errorf("sql insert into table `shorten_url`: %w", err)
+		}
 	}
 
 	return nil
 }
 
 // Get - Возвращает оригинальный URL
-func (p *pg) Get(shortURL string) (string, error) {
-	url := URL{}
-	if err := p.db.QueryRow(p.ctx, `SELECT origin FROM url WHERE short=$1 LIMIT 1`, shortURL).Scan(&url.origin); err != nil {
-		return "", fmt.Errorf("url not found: %w", err)
+func (p *pg) Get(shortURL string, token string) (string, error) {
+	//url := URL{}
+	var urlID int
+	var originURL string
+	var isDelete bool
+	// Получаем оргинальный URL
+	if err := p.db.QueryRow(p.ctx, `SELECT id, origin FROM url WHERE short=$1 LIMIT 1`, shortURL).Scan(&urlID, &originURL); err != nil {
+		return "",  fmt.Errorf("url not found: %w", err)
 	}
-	return url.origin, nil
+	// Получаем статус URL для конкретного пользователя (удален/не удален)
+	err := p.db.QueryRow(p.ctx, `SELECT delete FROM shorten_url
+										WHERE url=$1 
+										AND owner=(SELECT id FROM owner WHERE token=$2) 
+										LIMIT 1`, urlID, token).Scan(&isDelete)
+	if err != nil {
+		return "",  fmt.Errorf("...: %w", err)
+	}
+	// Возвращаем пустую строку если URL помечен как удаленный
+	if isDelete {
+		return "", nil
+	}
+	// Возвращаем оригинальный URL если помечен как не удаленный
+	return originURL, nil
 }
 
 // GetToken - Проверяет наличие токена в БД
@@ -199,15 +226,33 @@ func (p *pg) GetOwnerToken(token string) repository.Owner {
 	return owner
 }
 
-//func (p *pg) ownerTokenExist(token string) Owner {
-//	owner := Owner{}
-//	// Проверяем наличие пользователя в БД с определенным token
-//	if err := p.db.QueryRow(p.ctx, `SELECT id FROM owner WHERE token=$1 LIMIT 1;`, token).Scan(&owner.id); err != nil {
-//		log.Printf("sql select token err: %s", err)
-//	}
-//	return owner
-//}
+// GetShortURLByIdentityPath вернет все записи пользователя по идентификатору короткого URL
+func (p *pg) GetShortURLByIdentityPath(identityPath string, token string) int {
+	//url := repository.RecordURL{}
+	var urlID int
+	//err := p.db.QueryRow(p.ctx, `SELECT short FROM url
+	//									WHERE id=(SELECT url FROM shorten_url
+	//											WHERE url=(SELECT id FROM url WHERE short LIKE $1)
+	//											AND owner=(SELECT id FROM owner WHERE token=$2)
+	//											);`, "%"+identityPath, token).Scan(&url.ShortURL)
+	err := p.db.QueryRow(p.ctx, `SELECT id FROM shorten_url 
+											WHERE url=(SELECT id FROM url WHERE short LIKE $1) 
+											AND owner=(SELECT id FROM owner WHERE token=$2);`,
+											"%"+identityPath, token).Scan(&urlID)
+	if err != nil {
+		log.Printf("sql select short url by identity path was err: %s", err)
+	}
+	return urlID
+}
 
+// URLMarkDeleted помечает удаленным в таблице shorten_url. delete=true
+func (p *pg) URLMarkDeleted(id int) {
+	_, err := p.db.Exec(p.ctx, `UPDATE shorten_url SET delete=true WHERE id=$1`, id)
+	if err != nil {
+		log.Println("sql mark delete err", err)
+	}
+
+}
 
 // OriginURLExists - проверяет наличие URL в БД
 func (p *pg) OriginURLExists(originURL string) (bool, error) {

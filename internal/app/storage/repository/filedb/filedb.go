@@ -58,7 +58,7 @@ func (f *fileDB) Add(shortURL string, originURL string, token string) error {
 }
 
 // Get Поиск в БД
-func (f *fileDB) Get(shortURL string) (string, error) {
+func (f *fileDB) Get(shortURL string, token string) (string, error) {
 	// Открываем файл на чтение
 	c, err := newConsumer(f.name)
 	if err != nil {
@@ -80,6 +80,28 @@ func (f *fileDB) Get(shortURL string) (string, error) {
 		}
 	}
 }
+//func (f *fileDB) Get(shortURL string) (string, error) {
+//	// Открываем файл на чтение
+//	c, err := newConsumer(f.name)
+//	if err != nil {
+//		return "", err
+//	}
+//	defer c.close()
+//	// В цикле читаем каждую запись
+//	for {
+//		r, err := c.read()
+//
+//		if err == io.EOF {
+//			return "", fmt.Errorf("the URL not found")
+//		}
+//		if r.ShortURL == shortURL {
+//			return r.OriginURL, nil
+//		}
+//		if err != nil {
+//			return "", err
+//		}
+//	}
+//}
 
 
 func (f *fileDB) GetToken(token string) (bool, error) {
@@ -147,3 +169,11 @@ func (f *fileDB) GetOwnerToken(token string) repository.Owner {
 
 	return owner
 }
+
+// GetShortURLByIdentityPath Для обратной совместимости с Postgres
+func (f *fileDB) GetShortURLByIdentityPath(identityPath string, token string) int {
+	return 0
+}
+
+// URLMarkDeleted Для обратной совместимости с Postgres
+func (f *fileDB) URLMarkDeleted(id int) {}

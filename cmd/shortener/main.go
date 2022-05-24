@@ -75,6 +75,11 @@ func run() {
 	r.Post("/", c.AddURLHandler)
 	r.Get("/{urlID}", c.GetURLHandler)
 	r.Route("/api", func(r chi.Router) {
+		//r.Route("/user/urls", func(r chi.Router) {
+		//	r.Delete("/", c.DeleteURLs)
+		//	r.Get("/", c.GetUserURLs)
+		//})
+		r.Delete("/user/urls", c.DeleteURLs)
 		r.Get("/user/urls", c.GetUserURLs)
 		r.Route("/shorten", func(r chi.Router) {
 			r.Post("/", c.AddJSONURLHandler)
@@ -82,6 +87,7 @@ func run() {
 		})
 	})
 	r.HandleFunc("/ping", c.PingDB)
+
 
 	// Запускаем сервер
 	log.Fatal(http.ListenAndServe(serverAddress, r))

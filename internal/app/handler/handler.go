@@ -138,14 +138,25 @@ func (c *Controller) AddURLHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *Controller) GetURLHandler(w http.ResponseWriter, r *http.Request) {
+	// Получаем идентификатор пользователя
+	token, err := r.Cookie("session_token")
+	if err != nil {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
 
 	// Получаем оригинальный URL из БД
 	shortURL := fmt.Sprintf("%s%s", c.lc.ServiceName, r.URL.Path)
-	originURL, err := c.db.Get(shortURL)
+	originURL, err := c.db.Get(shortURL, token.Value)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 	}
-	// Отправляем ответ
+	// Если url помечен как удаленный
+	if len(originURL) == 0 {
+		w.WriteHeader(http.StatusGone)
+		return
+	}
+	// Если url есть в БД, то ставим хедеры и отправляем ответ
 	w.Header().Set("Location", originURL)
 	w.WriteHeader(http.StatusTemporaryRedirect)
 }
@@ -184,6 +195,59 @@ func (c *Controller) GetUserURLs(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
+
+}
+
+// DeleteURLs помечает удаленными URL по идентификатору (сокращенная часть url)
+//			  202 Accepted - успешное выполнение запроса пользователем его создавшем
+// 			  410 Gone - Если обратились к удаленному url по GET /{id} TODO: другая ручка
+func (c *Controller) DeleteURLs(w http.ResponseWriter, r *http.Request) {
+	// 1. Прочитать из body [ "a", "b", "c", "d", ...] сериализовать в JSON
+		bodyData, err := io.ReadAll(r.Body)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+		if len(bodyData) == 0 {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		var urlIdentityList []string
+		if err = json.Unmarshal(bodyData, &urlIdentityList); err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+		}
+
+	// 1.1. Получаем токен пользователя пользователя
+		token, err := r.Cookie("session_token")
+		if err != nil {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+		// fmt.Fprint(w, token.Value) // 3daa3dfdf17db865188026b7cc02e1b1f5c96bee2de9d247734f8b06c325a6be
+
+	// 2. В цикле, пройтись по списку:
+	//	  2.1:
+	// 		TODO: Можно реализовать паттерн Fan-Out поместив в канал идентификаторы и выполняя SELECT в несколько потоков
+	// 		 	  (но скорее всего бутылочное горлышко будет в тестах практикума)
+	//		owner = SELECT short FROM url WHERE short LIKE '%item' AND token=owner_id;
+		var URLs []int
+		for _, identity := range urlIdentityList {
+			urlID := c.db.GetShortURLByIdentityPath(identity, token.Value)
+			URLs = append(URLs, urlID)
+		}
+
+		for _, id := range URLs {
+			c.db.URLMarkDeleted(id)
+		}
+		log.Println(URLs)
+		w.WriteHeader(http.StatusAccepted)
+		return
+
+	//     2.2:
+	// 		TODO: Релизовать паттерн Fan-In читая из канала и
+	//		UPDATE shorten_url SET delete=true WHERE id=id
+	//	   2.3
+	//  	TODO: * формируем буфер batch update (pgx prepare statement)
 
 }
 
