@@ -205,49 +205,54 @@ func (c *Controller) GetUserURLs(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// TODO Debug: iteration14_test.go:221: Не удалось дождаться удаления переданных URL в течении 20 секунд
+
 // DeleteURLs помечает удаленными URL по идентификатору (сокращенная часть url)
 //			  202 Accepted - успешное выполнение запроса пользователем его создавшем
-// 			  410 Gone - Если обратились к удаленному url по GET /{id} TODO: другая ручка
 func (c *Controller) DeleteURLs(w http.ResponseWriter, r *http.Request) {
 	// 1. Прочитать из body [ "a", "b", "c", "d", ...] сериализовать в JSON
-		bodyData, err := io.ReadAll(r.Body)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-		}
-		if len(bodyData) == 0 {
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
+	bodyData, err := io.ReadAll(r.Body)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 
-		var urlIdentityList []string
-		if err = json.Unmarshal(bodyData, &urlIdentityList); err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-		}
+	if len(bodyData) == 0 {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	// Конвертируем в JSON данные из body
+	var urlIdentityList []string
+	if err = json.Unmarshal(bodyData, &urlIdentityList); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+	}
 
 	// 1.1. Получаем токен пользователя пользователя
-		token, err := r.Cookie("session_token")
-		if err != nil {
-			w.WriteHeader(http.StatusNoContent)
-			return
-		}
-		// fmt.Fprint(w, token.Value) // 3daa3dfdf17db865188026b7cc02e1b1f5c96bee2de9d247734f8b06c325a6be
+	// 		если токена нет - удалять нечего
+	token, err := r.Cookie("session_token")
+	if err != nil {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+	// fmt.Fprint(w, token.Value) // 3daa3dfdf17db865188026b7cc02e1b1f5c96bee2de9d247734f8b06c325a6be
 
 	// 2. В цикле, пройтись по списку:
 	//	  2.1:
 	// 		TODO: Можно реализовать паттерн Fan-Out поместив в канал идентификаторы и выполняя SELECT в несколько потоков
 	// 		 	  (но скорее всего бутылочное горлышко будет в тестах практикума)
-	//		owner = SELECT short FROM url WHERE short LIKE '%item' AND token=owner_id;
-		var URLs []int
-		for _, identity := range urlIdentityList {
-			urlID := c.db.GetShortURLByIdentityPath(identity, token.Value)
-			URLs = append(URLs, urlID)
-		}
+	//
+	var urlsID []int
+	for _, identity := range urlIdentityList {
+		id := c.db.GetShortURLByIdentityPath(identity, token.Value)
+		urlsID = append(urlsID, id)
+	}
 
-		for _, id := range URLs {
-			c.db.URLMarkDeleted(id)
-		}
-		log.Println(URLs)
-		w.WriteHeader(http.StatusAccepted)
+	// Помечаем как удаленные
+	for _, id := range urlsID {
+		go c.db.URLMarkDeleted(id)
+	}
+	log.Println(urlsID)
+	w.WriteHeader(http.StatusAccepted)
 
 	//     2.2:
 	// 		TODO: Релизовать паттерн Fan-In читая из канала и
