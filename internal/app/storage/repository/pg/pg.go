@@ -112,7 +112,7 @@ func (p *pg) Add(shortURL string, longURL string, token string) error {
 	var existID int
 	err = p.db.QueryRow(p.ctx, `SELECT id FROM shorten_url WHERE url=$1 AND owner=$2`, url.id, owner.ID).Scan(&existID)
 	if err != nil {
-		log.Printf("sql check record err:", err)
+		log.Printf("sql check record err: %s", err)
 	}
 	log.Println("existID:", existID)
 
@@ -130,24 +130,34 @@ func (p *pg) Add(shortURL string, longURL string, token string) error {
 
 // Get - Возвращает оригинальный URL
 func (p *pg) Get(shortURL string, token string) (string, error) {
-	//url := URL{}
 	var urlID int
 	var originURL string
-	var isDelete bool
+	//var isDelete bool
+
 	// Получаем оргинальный URL
-	if err := p.db.QueryRow(p.ctx, `SELECT id, origin FROM url WHERE short=$1 LIMIT 1`, shortURL).Scan(&urlID, &originURL); err != nil {
-		return "",  fmt.Errorf("url not found: %w", err)
+	err := p.db.QueryRow(p.ctx, `SELECT id, origin FROM url WHERE short=$1 LIMIT 1`, shortURL).Scan(&urlID, &originURL)
+	if err != nil {
+		return "",  fmt.Errorf("sql url not found: %w", err)
 	}
+
+	// TODO: Debug
+	//  	 Если запрос не вернул строку или вернул пустую строку - то это ошибка
 	// Получаем статус URL для конкретного пользователя (удален/не удален)
-	err := p.db.QueryRow(p.ctx, `SELECT delete FROM shorten_url
+	//err = p.db.QueryRow(p.ctx, `SELECT delete FROM shorten_url
+	//									WHERE url=$1
+	//									AND owner=(SELECT id FROM owner WHERE token=$2)
+	//									LIMIT 1`, urlID, token).Scan(&isDelete)
+
+	isDelete, err := p.db.Exec(p.ctx, `SELECT delete FROM shorten_url
 										WHERE url=$1 
 										AND owner=(SELECT id FROM owner WHERE token=$2) 
-										LIMIT 1`, urlID, token).Scan(&isDelete)
+										LIMIT 1`, urlID, token)
 	if err != nil {
-		return "",  fmt.Errorf("...: %w", err)
+		return "",  fmt.Errorf("sql SELECT delete FORM shorten_url: %w", err)
 	}
+
 	// Возвращаем пустую строку если URL помечен как удаленный
-	if isDelete {
+	if isDelete.String() == "true" {
 		return "", nil
 	}
 	// Возвращаем оригинальный URL если помечен как не удаленный

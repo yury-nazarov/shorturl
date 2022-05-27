@@ -146,7 +146,7 @@ func (c *Controller) GetURLHandler(w http.ResponseWriter, r *http.Request) {
 	// 		т.к если куки не найдены, r.Cookie() не вернет объект токен со строковым свойством token.Value
 	var userToken string
 	token, err := r.Cookie("session_token")
-	// Если токен существует в БД нужно объявить это в userToken
+	// Если токен существует нужно объявить это в userToken
 	if err == nil {
 		userToken = token.Value
 	}
@@ -248,7 +248,6 @@ func (c *Controller) DeleteURLs(w http.ResponseWriter, r *http.Request) {
 		}
 		log.Println(URLs)
 		w.WriteHeader(http.StatusAccepted)
-		return
 
 	//     2.2:
 	// 		TODO: Релизовать паттерн Fan-In читая из канала и
