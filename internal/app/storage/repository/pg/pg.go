@@ -33,7 +33,6 @@ func New(ctx context.Context, connStr string) *pg {
 }
 
 // SchemeInit Создает таблицы в БД если они не созданы.
-// 			  TODO: Возвращать ошибку и завершать работу приложения
 func (p *pg) SchemeInit() error {
 	// Общая таблица содержащая ссылки на остальные  таблицы.
 	_, err := p.db.Exec(p.ctx, `CREATE TABLE IF NOT EXISTS shorten_url (
@@ -70,12 +69,6 @@ func (p *pg) SchemeInit() error {
 	}
 	return nil
 }
-
-//// Owner Представление таблицы shorten_url.owner
-//type Owner struct {
-//	id int
-//	token string
-//}
 
 // URL - представление объекта URL
 type URL struct {
@@ -140,14 +133,8 @@ func (p *pg) Get(shortURL string, token string) (string, error) {
 		return "",  fmt.Errorf("sql url not found: %w", err)
 	}
 
-	// TODO: Debug
-	//  	 Если запрос не вернул строку или вернул пустую строку - то это ошибка
-	// Получаем статус URL для конкретного пользователя (удален/не удален)
-	//err = p.db.QueryRow(p.ctx, `SELECT delete FROM shorten_url
-	//									WHERE url=$1
-	//									AND owner=(SELECT id FROM owner WHERE token=$2)
-	//									LIMIT 1`, urlID, token).Scan(&isDelete)
 
+	// Получаем статус URL для конкретного пользователя (удален/не удален)
 	isDelete, err := p.db.Exec(p.ctx, `SELECT delete FROM shorten_url
 										WHERE url=$1 
 										AND owner=(SELECT id FROM owner WHERE token=$2) 
@@ -238,13 +225,7 @@ func (p *pg) GetOwnerToken(token string) repository.Owner {
 
 // GetShortURLByIdentityPath вернет все записи пользователя по идентификатору короткого URL
 func (p *pg) GetShortURLByIdentityPath(identityPath string, token string) int {
-	//url := repository.RecordURL{}
 	var urlID int
-	//err := p.db.QueryRow(p.ctx, `SELECT short FROM url
-	//									WHERE id=(SELECT url FROM shorten_url
-	//											WHERE url=(SELECT id FROM url WHERE short LIKE $1)
-	//											AND owner=(SELECT id FROM owner WHERE token=$2)
-	//											);`, "%"+identityPath, token).Scan(&url.ShortURL)
 	err := p.db.QueryRow(p.ctx, `SELECT id FROM shorten_url 
 											WHERE url=(SELECT id FROM url WHERE short LIKE $1) 
 											AND owner=(SELECT id FROM owner WHERE token=$2);`,
@@ -275,5 +256,4 @@ func (p *pg) OriginURLExists(originURL string) (bool, error) {
 		return false, nil
 	}
 	return true, nil
-
 }
