@@ -137,26 +137,33 @@ func (c *Controller) AddURLHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// GetURLHandler по сокращенному  URL
+//				вернет оригинальный URL
+//				установит заголоко Location: originURL + HTTP 307
 func (c *Controller) GetURLHandler(w http.ResponseWriter, r *http.Request) {
 	// Получаем идентификатор пользователя
+	// 		Пустая строка userToken нужна для обратной совместимости с inMemory и fileDB
+	// 		т.к если куки не найдены, r.Cookie() не вернет объект токен со строковым свойством token.Value
+	var userToken string
 	token, err := r.Cookie("session_token")
-	if err != nil {
-		w.WriteHeader(http.StatusNoContent)
-		return
+	// Если токен существует в БД нужно объявить это в userToken
+	if err == nil {
+		userToken = token.Value
 	}
 
 	// Получаем оригинальный URL из БД
 	shortURL := fmt.Sprintf("%s%s", c.lc.ServiceName, r.URL.Path)
-	originURL, err := c.db.Get(shortURL, token.Value)
+	originURL, err := c.db.Get(shortURL, userToken)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 	}
-	// Если url помечен как удаленный
+
+	// HTTP 410 если url помечен как удаленный
 	if len(originURL) == 0 {
 		w.WriteHeader(http.StatusGone)
 		return
 	}
-	// Если url есть в БД, то ставим хедеры и отправляем ответ
+	// HTTP 307 Если url есть в БД
 	w.Header().Set("Location", originURL)
 	w.WriteHeader(http.StatusTemporaryRedirect)
 }
