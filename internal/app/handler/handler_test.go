@@ -3,7 +3,6 @@ package handler
 import (
 	"bytes"
 	"compress/gzip"
-	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -34,10 +33,8 @@ func NewTestServer(dbName string, PGConnStr string) *httptest.Server {
 	lc := service.NewLinkCompressor(5, fmt.Sprintf("http://%s", ServiceAddress))
 
 	// Инициируем БД
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	db := storage.New(storage.DBConfig{FileName: dbName, PGConnStr: PGConnStr, Ctx: ctx})
-	c := NewController(ctx, db, lc)
+	db := storage.New(storage.DBConfig{FileName: dbName, PGConnStr: PGConnStr})
+	c := NewController(db, lc)
 
 	// Собственные middleware для компрессии/декомпрессии
 	r.Use(appMiddleware.HTTPResponseCompressor)

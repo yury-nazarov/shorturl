@@ -7,7 +7,6 @@ import (
 
 	"database/sql"
 	_ "github.com/jackc/pgx/v4/stdlib"
-	//_ "github.com/jackc/pgx/v4"
 
 	"github.com/yury-nazarov/shorturl/internal/app/storage/repository"
 )
@@ -19,7 +18,7 @@ type pg struct {
 }
 
 // New - врнет ссылку на пулл соединений с PG
-func New(ctx context.Context, connStr string) *pg {
+func New(connStr string) *pg {
 	db, err := sql.Open("pgx", connStr)
 	if err != nil {
 		log.Fatal(err)
@@ -27,30 +26,17 @@ func New(ctx context.Context, connStr string) *pg {
 	// TODO: defer db.Close() ???
 	dbConnect := &pg{
 		db: db,
-		ctx: ctx,
 	}
 	return dbConnect
 }
-//func New(ctx context.Context, connStr string) *pg {
-//	poolConfig, _ := pgxpool.ParseConfig(connStr)
-//	poolConfig.MinConns = 5
-//	poolConfig.MaxConns = 5
-//
-//	pool, err := pgxpool.ConnectConfig(ctx, poolConfig)
-//	if err != nil {
-//		log.Print(err)
-//	}
-//	dbPoolConnect := &pg {
-//		db: pool,
-//		ctx: ctx,
-//	}
-//	return dbPoolConnect
-//}
 
 // SchemeInit Создает таблицы в БД если они не созданы.
 func (p *pg) SchemeInit() error {
+	// Контекст для инициализации БД
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	// Общая таблица содержащая ссылки на остальные  таблицы.
-	_, err := p.db.ExecContext(p.ctx, `CREATE TABLE IF NOT EXISTS shorten_url (
+	_, err := p.db.ExecContext(ctx, `CREATE TABLE IF NOT EXISTS shorten_url (
                           id serial PRIMARY KEY,
 						  url INT NOT NULL,
 						  owner INT NOT NULL,
@@ -61,7 +47,7 @@ func (p *pg) SchemeInit() error {
 
 
 	// Таблица для URL
-	_, err = p.db.ExecContext(p.ctx, `CREATE TABLE IF NOT EXISTS url (
+	_, err = p.db.ExecContext(ctx, `CREATE TABLE IF NOT EXISTS url (
                           id serial PRIMARY KEY,
 						  origin VARCHAR (255) NOT NULL,
 						  short VARCHAR (255) NOT NULL)`)
@@ -70,13 +56,13 @@ func (p *pg) SchemeInit() error {
 	}
 
 	// Создаем уникальный индекс для таблицы URL
-	_, err = p.db.ExecContext(p.ctx, `CREATE UNIQUE INDEX IF NOT EXISTS url_index ON url (origin)`)
+	_, err = p.db.ExecContext(ctx, `CREATE UNIQUE INDEX IF NOT EXISTS url_index ON url (origin)`)
 	if err != nil {
 		return fmt.Errorf("create index `url_index`: %w", err)
 	}
 
 	// Таблица для пользовательских данных
-	_, err = p.db.ExecContext(p.ctx, `CREATE TABLE IF NOT EXISTS owner (
+	_, err = p.db.ExecContext(ctx, `CREATE TABLE IF NOT EXISTS owner (
                           id serial PRIMARY KEY,
 						  token  VARCHAR (255) NOT NULL)`)
 	if err != nil {

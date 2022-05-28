@@ -31,11 +31,10 @@ type URLBatch struct {
 }
 
 // NewController - вернет объект для доступа к хендлерам
-func NewController(ctx context.Context, db repository.Repository, lc service.LinkCompressor) *Controller {
+func NewController(db repository.Repository, lc service.LinkCompressor) *Controller {
 	c := &Controller{
 		db: db,
 		lc: lc,
-		ctx: ctx,
 	}
 	return c
 }
