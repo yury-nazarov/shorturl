@@ -1,6 +1,7 @@
 package inmemorydb
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -79,7 +80,7 @@ func (u *inMemoryDB) Ping() bool {
 }
 
 // OriginURLExists Для обратной совместимости с Postgres
-func (u *inMemoryDB) OriginURLExists(originURL string) (bool, error) {
+func (u *inMemoryDB) OriginURLExists(ctx context.Context, originURL string) (bool, error) {
 	return false, nil
 }
 

@@ -1,6 +1,7 @@
 package filedb
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"log"
@@ -159,7 +160,7 @@ func (f *fileDB) Ping() bool {
 }
 
 // OriginURLExists Для обратной совместимости с Postgres
-func (f *fileDB) OriginURLExists(originURL string) (bool, error) {
+func (f *fileDB) OriginURLExists(ctx context.Context, originURL string) (bool, error) {
 	return false, nil
 }
 

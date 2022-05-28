@@ -59,7 +59,7 @@ func (c *Controller) AddJSONURLHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 	}
 	// Проверяем если в БД уже есть оригинальный URL, нуже для верной установки заголовков ответа
-	originURLExists, err := c.db.OriginURLExists(url.Request)
+	originURLExists, err := c.db.OriginURLExists(r.Context(), url.Request)
 	if err != nil {
 		log.Print("OriginURLExists: ", err)
 	}
@@ -110,7 +110,7 @@ func (c *Controller) AddURLHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Проверяем если в БД уже есть оригинальный URL, нуже для верной установки заголовков ответа
 	originURL := string(bodyData)
-	originURLExists, err := c.db.OriginURLExists(originURL)
+	originURLExists, err := c.db.OriginURLExists(r.Context(), originURL)
 	if err != nil {
 		log.Print("OriginURLExists: ", err)
 	}

@@ -1,5 +1,7 @@
 package repository
 
+import "context"
+
 // Repository - общее представление интерфейса для работы с БД
 type Repository interface {
 	Add(shortURL string, longURL string, token string) error
@@ -10,7 +12,7 @@ type Repository interface {
 	GetShortURLByIdentityPath(identityPath string, token string) int
 	URLMarkDeleted(id int)
 	Ping() bool
-	OriginURLExists(originURL string) (bool, error)
+	OriginURLExists(ctx context.Context, originURL string) (bool, error)
 }
 
 // RecordURL - Структура описывает возращаемые занчения для пакета repository

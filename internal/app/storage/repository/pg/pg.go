@@ -271,9 +271,9 @@ func (p *pg) URLMarkDeleted(id int) {
 }
 
 // OriginURLExists - проверяет наличие URL в БД
-func (p *pg) OriginURLExists(originURL string) (bool, error) {
+func (p *pg) OriginURLExists(ctx context.Context, originURL string) (bool, error) {
 	url := URL{}
-	err := p.db.QueryRowContext(p.ctx, `SELECT origin FROM url WHERE origin=$1 LIMIT 1`, originURL).Scan(&url.origin)
+	err := p.db.QueryRowContext(ctx, `SELECT origin FROM url WHERE origin=$1 LIMIT 1`, originURL).Scan(&url.origin)
 	if err != nil {
 		return false, err
 	}
