@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"flag"
 	"github.com/go-chi/chi/v5/middleware"
 	"log"
@@ -45,9 +44,7 @@ func run() {
 	PGConnStr		:= serverConfigInit(*dataBaseStringFlag, dataBaseStringEnv, "")
 
 	// Инициируем БД
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	db := storage.New(storage.DBConfig{FileName: dbFileName, PGConnStr: PGConnStr, Ctx: ctx})
+	db := storage.New(storage.DBConfig{FileName: dbFileName, PGConnStr: PGConnStr})
 
 	// Инициируем Router
 	r := chi.NewRouter()
@@ -67,7 +64,7 @@ func run() {
 	// Создаем объект для доступа к методам компрессии URL
 	lc := service.NewLinkCompressor(5, baseURL)
 	// Инициируем объект для доступа к хендлерам
-	c := handler.NewController(ctx, db, lc)
+	c := handler.NewController(db, lc)
 
 
 	// API endpoints

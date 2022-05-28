@@ -132,7 +132,6 @@ func (f *fileDB) GetUserURL(ctx context.Context, token string) ([]repository.Rec
 
 // Ping Для обратной совместимости с Postgres
 func (f *fileDB) Ping() bool {
-	// TODO: Создать тестовый файл, записать в него, удалить
 	return true
 }
 
@@ -144,7 +143,6 @@ func (f *fileDB) OriginURLExists(ctx context.Context, originURL string) (bool, e
 // GetOwnerToken Для обратной совместимости с Postgres
 func (f *fileDB) GetOwnerToken(ctx context.Context, token string) repository.Owner {
 	owner := repository.Owner{}
-
 	return owner
 }
 

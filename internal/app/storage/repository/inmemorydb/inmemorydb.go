@@ -57,7 +57,6 @@ func (u *inMemoryDB) GetToken(ctx context.Context, token string) (bool, error) {
 func (u *inMemoryDB) GetUserURL(ctx context.Context, token string) ([]repository.RecordURL, error) {
 	var result []repository.RecordURL
 	for k, urlInfo := range u.db {
-		// fmt.Println("inmemoryItem",  k, urlInfo)
 		if strings.Contains(token, urlInfo.token) {
 			result = append(result, repository.RecordURL{ShortURL: k, OriginURL: urlInfo.longURL})
 		}
@@ -78,7 +77,6 @@ func (u *inMemoryDB) OriginURLExists(ctx context.Context, originURL string) (boo
 // GetOwnerToken Для обратной совместимости с Postgres
 func (u *inMemoryDB) GetOwnerToken(ctx context.Context, token string) repository.Owner {
 	owner := repository.Owner{}
-
 	return owner
 }
 
