@@ -33,7 +33,7 @@ func NewFileDB(fileName string) *fileDB {
 }
 
 // Add - добавляем запись в БД
-func (f *fileDB) Add(shortURL string, originURL string, token string) error {
+func (f *fileDB) Add(ctx context.Context, shortURL string, originURL string, token string) error {
 	// Создаем новую запись как JSON объект
 	data := &record{
 		ShortURL:  shortURL,
@@ -59,7 +59,7 @@ func (f *fileDB) Add(shortURL string, originURL string, token string) error {
 }
 
 // Get Поиск в БД
-func (f *fileDB) Get(shortURL string, token string) (string, error) {
+func (f *fileDB) Get(ctx context.Context, shortURL string, token string) (string, error) {
 	// Открываем файл на чтение
 	c, err := newConsumer(f.name)
 	if err != nil {
@@ -81,31 +81,8 @@ func (f *fileDB) Get(shortURL string, token string) (string, error) {
 		}
 	}
 }
-//func (f *fileDB) Get(shortURL string) (string, error) {
-//	// Открываем файл на чтение
-//	c, err := newConsumer(f.name)
-//	if err != nil {
-//		return "", err
-//	}
-//	defer c.close()
-//	// В цикле читаем каждую запись
-//	for {
-//		r, err := c.read()
-//
-//		if err == io.EOF {
-//			return "", fmt.Errorf("the URL not found")
-//		}
-//		if r.ShortURL == shortURL {
-//			return r.OriginURL, nil
-//		}
-//		if err != nil {
-//			return "", err
-//		}
-//	}
-//}
 
-
-func (f *fileDB) GetToken(token string) (bool, error) {
+func (f *fileDB) GetToken(ctx context.Context, token string) (bool, error) {
 	// Открываем файл на чтение
 	c, err := newConsumer(f.name)
 	if err != nil {
@@ -130,7 +107,7 @@ func (f *fileDB) GetToken(token string) (bool, error) {
 
 
 // GetUserURL - вернет слайс из структур со всем URL пользователя
-func (f *fileDB) GetUserURL(token string) ([]repository.RecordURL, error) {
+func (f *fileDB) GetUserURL(ctx context.Context, token string) ([]repository.RecordURL, error) {
 	// Открываем файл на чтение
 	c, err := newConsumer(f.name)
 	if err != nil {
@@ -165,16 +142,16 @@ func (f *fileDB) OriginURLExists(ctx context.Context, originURL string) (bool, e
 }
 
 // GetOwnerToken Для обратной совместимости с Postgres
-func (f *fileDB) GetOwnerToken(token string) repository.Owner {
+func (f *fileDB) GetOwnerToken(ctx context.Context, token string) repository.Owner {
 	owner := repository.Owner{}
 
 	return owner
 }
 
 // GetShortURLByIdentityPath Для обратной совместимости с Postgres
-func (f *fileDB) GetShortURLByIdentityPath(identityPath string, token string) int {
+func (f *fileDB) GetShortURLByIdentityPath(ctx context.Context, identityPath string, token string) int {
 	return 0
 }
 
 // URLMarkDeleted Для обратной совместимости с Postgres
-func (f *fileDB) URLMarkDeleted(id int) {}
+func (f *fileDB) URLMarkDeleted(ctx context.Context, id int) {}

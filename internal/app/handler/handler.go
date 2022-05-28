@@ -70,7 +70,7 @@ func (c *Controller) AddJSONURLHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Print("AddURLHandler: err:",err)
 	}
-	if err = c.db.Add(shortURL, url.Request, token.Value); err != nil {
+	if err = c.db.Add(r.Context(), shortURL, url.Request, token.Value); err != nil {
 		log.Print(err)
 	}
 
@@ -120,7 +120,7 @@ func (c *Controller) AddURLHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Print("AddURLHandler: err:",err)
 	}
-	if err = c.db.Add(shortURL, originURL, token.Value); err != nil {
+	if err = c.db.Add(r.Context(), shortURL, originURL, token.Value); err != nil {
 		log.Print(err)
 	}
 
@@ -153,7 +153,7 @@ func (c *Controller) GetURLHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Получаем оригинальный URL из БД
 	shortURL := fmt.Sprintf("%s%s", c.lc.ServiceName, r.URL.Path)
-	originURL, err := c.db.Get(shortURL, userToken)
+	originURL, err := c.db.Get(r.Context(), shortURL, userToken)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 	}
@@ -178,7 +178,7 @@ func (c *Controller) GetUserURLs(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Достаем из БД все записи по токену
-	userURL, err := c.db.GetUserURL(token.Value)
+	userURL, err := c.db.GetUserURL(r.Context(), token.Value)
 	if err != nil {
 		log.Print(err)
 	}
@@ -243,13 +243,13 @@ func (c *Controller) DeleteURLs(w http.ResponseWriter, r *http.Request) {
 	//
 	var urlsID []int
 	for _, identity := range urlIdentityList {
-		id := c.db.GetShortURLByIdentityPath(identity, token.Value)
+		id := c.db.GetShortURLByIdentityPath(r.Context(), identity, token.Value)
 		urlsID = append(urlsID, id)
 	}
 
 	// Помечаем как удаленные
 	for _, id := range urlsID {
-		go c.db.URLMarkDeleted(id)
+		go c.db.URLMarkDeleted(r.Context(), id)
 	}
 	log.Println(urlsID)
 	w.WriteHeader(http.StatusAccepted)
@@ -302,7 +302,7 @@ func (c *Controller) AddJSONURLBatchHandler(w http.ResponseWriter, r *http.Reque
 		if err != nil {
 			log.Print("AddURLHandler: err:",err)
 		}
-		if err = c.db.Add(shortURL, item.OriginalURL, token.Value); err != nil {
+		if err = c.db.Add(r.Context(), shortURL, item.OriginalURL, token.Value); err != nil {
 			log.Print(err)
 		}
 

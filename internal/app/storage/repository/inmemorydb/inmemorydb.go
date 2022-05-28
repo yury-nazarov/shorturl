@@ -28,31 +28,22 @@ func NewInMemoryDB() *inMemoryDB {
 }
 
 // Add Добавляет новый url в БД
-func (u *inMemoryDB) Add(shortURL string, longURL string, token string) error {
+func (u *inMemoryDB) Add(ctx context.Context, shortURL string, longURL string, token string) error {
 	u.db[shortURL] = URLInfo{longURL: longURL, token: token}
 	return nil
 }
 
 // Get Достает из БД URL
-func (u *inMemoryDB) Get(shortURL string, token string) (string, error) {
+func (u *inMemoryDB) Get(ctx context.Context, shortURL string, token string) (string, error) {
 	urlInfo, ok := u.db[shortURL]
 	if !ok {
 		return "", fmt.Errorf("shorturl %s not found", shortURL)
 	}
 	return urlInfo.longURL, nil
 }
-//func (u *inMemoryDB) Get(shortURL string) (repository.URL, error) {
-//	var url repository.URL
-//	urlInfo, ok := u.db[shortURL]
-//	url.Origin = urlInfo.longURL
-//	if !ok {
-//		return url, fmt.Errorf("shorturl %s not found", shortURL)
-//	}
-//	return url, nil
-//}
 
 // GetToken за O(n) ищет первую подходящую запись с токеном
-func (u *inMemoryDB) GetToken(token string) (bool, error) {
+func (u *inMemoryDB) GetToken(ctx context.Context, token string) (bool, error) {
 	for _, urlInfo := range u.db {
 		if strings.Contains(token, urlInfo.token) {
 			return true, nil
@@ -63,7 +54,7 @@ func (u *inMemoryDB) GetToken(token string) (bool, error) {
 
 
 // GetUserURL - вернет все url для пользователя
-func (u *inMemoryDB) GetUserURL(token string) ([]repository.RecordURL, error) {
+func (u *inMemoryDB) GetUserURL(ctx context.Context, token string) ([]repository.RecordURL, error) {
 	var result []repository.RecordURL
 	for k, urlInfo := range u.db {
 		// fmt.Println("inmemoryItem",  k, urlInfo)
@@ -85,16 +76,16 @@ func (u *inMemoryDB) OriginURLExists(ctx context.Context, originURL string) (boo
 }
 
 // GetOwnerToken Для обратной совместимости с Postgres
-func (u *inMemoryDB) GetOwnerToken(token string) repository.Owner {
+func (u *inMemoryDB) GetOwnerToken(ctx context.Context, token string) repository.Owner {
 	owner := repository.Owner{}
 
 	return owner
 }
 
 // GetShortURLByIdentityPath Для обратной совместимости с Postgres
-func (u *inMemoryDB) GetShortURLByIdentityPath(identityPath string, token string) int {
+func (u *inMemoryDB) GetShortURLByIdentityPath(ctx context.Context,identityPath string, token string) int {
 	return 0
 }
 
 // URLMarkDeleted Для обратной совместимости с Postgres
-func (u *inMemoryDB) URLMarkDeleted(id int) {}
+func (u *inMemoryDB) URLMarkDeleted(ctx context.Context, id int) {}

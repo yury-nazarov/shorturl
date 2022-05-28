@@ -34,7 +34,7 @@ func HTTPCookieAuth(db repository.Repository) func(next http.Handler) http.Handl
 			}
 
 			// Проверяем валидность токена, найдя его в БД
-			tokenExist, err := db.GetToken(token.Value)
+			tokenExist, err := db.GetToken(r.Context(), token.Value)
 			if err != nil {
 				log.Print(err)
 			}

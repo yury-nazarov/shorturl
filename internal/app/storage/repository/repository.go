@@ -4,13 +4,13 @@ import "context"
 
 // Repository - общее представление интерфейса для работы с БД
 type Repository interface {
-	Add(shortURL string, longURL string, token string) error
-	Get(shortURL string, token string) (string, error)
-	GetToken(token string) (bool, error)
-	GetOwnerToken(token string) Owner
-	GetUserURL(token string) ([]RecordURL, error)
-	GetShortURLByIdentityPath(identityPath string, token string) int
-	URLMarkDeleted(id int)
+	Add(ctx context.Context, shortURL string, longURL string, token string) error
+	Get(ctx context.Context, shortURL string, token string) (string, error)
+	GetToken(ctx context.Context, token string) (bool, error)
+	GetOwnerToken(ctx context.Context, token string) Owner
+	GetUserURL(ctx context.Context, token string) ([]RecordURL, error)
+	GetShortURLByIdentityPath(ctx context.Context, identityPath string, token string) int
+	URLMarkDeleted(ctx context.Context, id int)
 	Ping() bool
 	OriginURLExists(ctx context.Context, originURL string) (bool, error)
 }

@@ -94,12 +94,12 @@ type URL struct {
 }
 
 // Add - добавляет новую запись в таблицу: shorten_url
-func (p *pg) Add(shortURL string, longURL string, token string) error {
+func (p *pg) Add(ctx context.Context, shortURL string, longURL string, token string) error {
 	// Проверяем наличие пользователя в БД с определенным token, получаем id для дальнейшего insert
-	owner := p.GetOwnerToken(token)
+	owner := p.GetOwnerToken(ctx, token)
 	// Если пользователя нет, добавляем токен в БД и получаем его id для дальнейшего insert
 	if owner.ID == 0 {
-		if err := p.db.QueryRowContext(p.ctx, `INSERT INTO owner (token) VALUES ($1) RETURNING id;`, token).Scan(&owner.ID); err != nil {
+		if err := p.db.QueryRowContext(ctx, `INSERT INTO owner (token) VALUES ($1) RETURNING id;`, token).Scan(&owner.ID); err != nil {
 			return fmt.Errorf("sql insert into token err: %w", err)
 		}
 		log.Printf("token '%s' was added into DB with 'id'=%d", token, owner.ID)
@@ -108,7 +108,7 @@ func (p *pg) Add(shortURL string, longURL string, token string) error {
 	// Добавляем URL если нет
 	url := URL{}
 	//  Выполнит INSERT и вернет id добавленой записи, либо обновит существующую запись и вернет ее id
-	err := p.db.QueryRowContext(p.ctx, `INSERT INTO url (origin, short) 
+	err := p.db.QueryRowContext(ctx, `INSERT INTO url (origin, short) 
 									 VALUES ($1, $2) 
 									 ON CONFLICT (origin) DO UPDATE SET origin=$1 
 									 RETURNING id;`, longURL, shortURL).Scan(&url.id)
@@ -118,7 +118,7 @@ func (p *pg) Add(shortURL string, longURL string, token string) error {
 
 	// Проверяем наличие записи, что бы не было дублей
 	var existID int
-	err = p.db.QueryRowContext(p.ctx, `SELECT id FROM shorten_url WHERE url=$1 AND owner=$2`, url.id, owner.ID).Scan(&existID)
+	err = p.db.QueryRowContext(ctx, `SELECT id FROM shorten_url WHERE url=$1 AND owner=$2`, url.id, owner.ID).Scan(&existID)
 	if err != nil {
 		log.Printf("sql check record err: %s", err)
 	}
@@ -127,7 +127,7 @@ func (p *pg) Add(shortURL string, longURL string, token string) error {
 	// выполняем только в том случае, если записи в БД нет
 	if existID == 0 {
 		// Добавляем owner.id, url.id в общую таблицу
-		_, err = p.db.ExecContext(p.ctx, `INSERT INTO shorten_url (url, owner) VALUES ($1, $2);`, url.id, owner.ID)
+		_, err = p.db.ExecContext(ctx, `INSERT INTO shorten_url (url, owner) VALUES ($1, $2);`, url.id, owner.ID)
 		if err != nil {
 			return fmt.Errorf("sql insert into table `shorten_url`: %w", err)
 		}
@@ -137,21 +137,21 @@ func (p *pg) Add(shortURL string, longURL string, token string) error {
 }
 
 // Get - Возвращает оригинальный URL
-func (p *pg) Get(shortURL string, token string) (string, error) {
+func (p *pg) Get(ctx context.Context, shortURL string, token string) (string, error) {
 	var urlID int
 	var originURL string
 	//var isDelete bool
 
 	// Получаем оргинальный URL
 	//err := p.db.QueryRow(p.ctx, `SELECT id, origin FROM url WHERE short=$1 LIMIT 1`, shortURL).Scan(&urlID, &originURL)
-	err := p.db.QueryRowContext(p.ctx, `SELECT id, origin FROM url WHERE short=$1 LIMIT 1`, shortURL).Scan(&urlID, &originURL)
+	err := p.db.QueryRowContext(ctx, `SELECT id, origin FROM url WHERE short=$1 LIMIT 1`, shortURL).Scan(&urlID, &originURL)
 	if err != nil {
 		return "",  fmt.Errorf("sql url not found: %w", err)
 	}
 
 
 	// Получаем статус URL для конкретного пользователя (удален/не удален)
-	//isDelete, err := p.db.Exec(p.ctx, `SELECT delete FROM shorten_url
+	//isDelete, err := p.db.Exec(ctx, `SELECT delete FROM shorten_url
 	//									WHERE url=$1
 	//									AND owner=(SELECT id FROM owner WHERE token=$2)
 	//									LIMIT 1`, urlID, token)
@@ -173,9 +173,9 @@ func (p *pg) Get(shortURL string, token string) (string, error) {
 }
 
 // GetToken - Проверяет наличие токена в БД
-func (p *pg) GetToken(token string) (bool, error) {
+func (p *pg) GetToken(ctx context.Context, token string) (bool, error) {
 	owner := repository.Owner{}
-	if err := p.db.QueryRowContext(p.ctx, `SELECT id FROM owner WHERE token=$1 LIMIT 1;`, token).Scan(&owner.ID); err != nil {
+	if err := p.db.QueryRowContext(ctx, `SELECT id FROM owner WHERE token=$1 LIMIT 1;`, token).Scan(&owner.ID); err != nil {
 		return false, fmt.Errorf("token not found: %w", err)
 	}
 	return true, nil
@@ -183,18 +183,18 @@ func (p *pg) GetToken(token string) (bool, error) {
 
 
 // GetUserURL - Возвращает все url для конкретного token
-func (p *pg) GetUserURL(token string) ([]repository.RecordURL, error) {
+func (p *pg) GetUserURL(ctx context.Context, token string) ([]repository.RecordURL, error) {
 	// Слайс который будем возвращать как результат работы метода
 	var urls []repository.RecordURL
 
 	// Проверяем наличие пользователя в БД с определенным token, получаем id для дальнейшего select
-	owner := p.GetOwnerToken(token)
+	owner := p.GetOwnerToken(ctx, token)
 	if owner.ID == 0 {
 		return urls, fmt.Errorf("owner with token: %s not exist", token)
 	}
 
 	// Получаем все id для url для конкретного owner
-	rows, err := p.db.QueryContext(p.ctx, `SELECT url FROM shorten_url WHERE owner=$1`, owner.ID)
+	rows, err := p.db.QueryContext(ctx, `SELECT url FROM shorten_url WHERE owner=$1`, owner.ID)
 	if err != nil {
 		return urls, err
 	}
@@ -207,7 +207,7 @@ func (p *pg) GetUserURL(token string) ([]repository.RecordURL, error) {
 		rows.Scan(&url.id)
 
 		// Получаем из БД пару URL: origin, short и добавляем  результирующий слайс
-		ownerURL, err := p.getURLByID(url.id)
+		ownerURL, err := p.getURLByID(ctx, url.id)
 		if err != nil {
 			return urls, err
 		}
@@ -228,10 +228,10 @@ func (p *pg) Ping() bool {
 }
 
 // getURLByID - по ID получаем пару URL: origin, short
-func (p *pg) getURLByID(id int) (repository.RecordURL, error) {
+func (p *pg) getURLByID(ctx context.Context, id int) (repository.RecordURL, error) {
 	url := repository.RecordURL{}
 
-	if err := p.db.QueryRowContext(p.ctx, `SELECT origin, short FROM url WHERE id=$1 LIMIT 1`, id).Scan(&url.OriginURL, &url.ShortURL); err != nil {
+	if err := p.db.QueryRowContext(ctx, `SELECT origin, short FROM url WHERE id=$1 LIMIT 1`, id).Scan(&url.OriginURL, &url.ShortURL); err != nil {
 		return url, err
 	}
 	return url, nil
@@ -239,19 +239,19 @@ func (p *pg) getURLByID(id int) (repository.RecordURL, error) {
 
 // GetOwnerToken Получает информацию о пользователе из БД по токену
 // Если пользователя не существует, вернет структуру Owner с дефолтными значениями полей
-func (p *pg) GetOwnerToken(token string) repository.Owner {
+func (p *pg) GetOwnerToken(ctx context.Context, token string) repository.Owner {
 	owner := repository.Owner{}
 	// Проверяем наличие пользователя в БД с определенным token
-	if err := p.db.QueryRowContext(p.ctx, `SELECT id FROM owner WHERE token=$1 LIMIT 1;`, token).Scan(&owner.ID); err != nil {
+	if err := p.db.QueryRowContext(ctx, `SELECT id FROM owner WHERE token=$1 LIMIT 1;`, token).Scan(&owner.ID); err != nil {
 		log.Printf("sql select token err: %s", err)
 	}
 	return owner
 }
 
 // GetShortURLByIdentityPath вернет все записи пользователя по идентификатору короткого URL
-func (p *pg) GetShortURLByIdentityPath(identityPath string, token string) int {
+func (p *pg) GetShortURLByIdentityPath(ctx context.Context, identityPath string, token string) int {
 	var urlID int
-	err := p.db.QueryRowContext(p.ctx, `SELECT id FROM shorten_url 
+	err := p.db.QueryRowContext(ctx, `SELECT id FROM shorten_url 
 											WHERE url=(SELECT id FROM url WHERE short LIKE $1) 
 											AND owner=(SELECT id FROM owner WHERE token=$2);`,
 											"%"+identityPath, token).Scan(&urlID)
@@ -262,8 +262,8 @@ func (p *pg) GetShortURLByIdentityPath(identityPath string, token string) int {
 }
 
 // URLMarkDeleted помечает удаленным в таблице shorten_url. delete=true
-func (p *pg) URLMarkDeleted(id int) {
-	_, err := p.db.ExecContext(p.ctx, `UPDATE shorten_url SET delete=true WHERE id=$1`, id)
+func (p *pg) URLMarkDeleted(ctx context.Context, id int) {
+	_, err := p.db.ExecContext(ctx, `UPDATE shorten_url SET delete=true WHERE id=$1`, id)
 	if err != nil {
 		log.Println("sql mark delete err", err)
 	}
