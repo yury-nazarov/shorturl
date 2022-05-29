@@ -117,7 +117,7 @@ func (p *pg) Add(ctx context.Context, shortURL string, longURL string, token str
 			return fmt.Errorf("sql insert into table `shorten_url`: %w", err)
 		}
 	}
-
+	log.Printf("DEBUG: User: %s add URL: %s -> %s\n", token,  longURL, shortURL)
 	return nil
 }
 
