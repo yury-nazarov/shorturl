@@ -107,7 +107,7 @@ func (c *Controller) AddURLHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Проверяем если в БД уже есть оригинальный URL, нуже для верной установки заголовков ответа
+	// Проверяем если в БД уже есть оригинальный URL, ниже для верной установки заголовков ответа
 	originURL := string(bodyData)
 	originURLExists, err := c.db.OriginURLExists(r.Context(), originURL)
 	if err != nil {
@@ -173,6 +173,7 @@ func (c *Controller) GetUserURLs(w http.ResponseWriter, r *http.Request) {
 	// Получаем токен из кук
 	token, err := r.Cookie("session_token")
 	if err != nil {
+		log.Println("DEBUG 1")
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}
@@ -190,6 +191,7 @@ func (c *Controller) GetUserURLs(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(userURL) == 0 {
+		log.Println("DEBUG 2")
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}
