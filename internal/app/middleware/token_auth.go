@@ -73,14 +73,12 @@ func  uniqueUserID() string {
 	uuid := make([]byte, 16)
 	_, err := rand.Read(uuid)
 	if err != nil {
-		// TODO: Как правильно обрабатывать ошибки в mw ?
 		log.Print(err)
 	}
 	return hex.EncodeToString(uuid)
 }
 
 func encryptToken(uuid []byte) string{
-	// TODO: Вынести в конфиг ключ
 	key := []byte("qwe")
 	h := hmac.New(sha256.New, key)
 	h.Write(uuid)

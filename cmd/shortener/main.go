@@ -2,12 +2,12 @@ package main
 
 import (
 	"flag"
-	"github.com/go-chi/chi/v5/middleware"
 	"log"
 	"net/http"
 	"os"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 
 	"github.com/yury-nazarov/shorturl/internal/app/handler"
 	appMiddleware "github.com/yury-nazarov/shorturl/internal/app/middleware"
@@ -72,10 +72,6 @@ func run() {
 	r.Post("/", c.AddURLHandler)
 	r.Get("/{urlID}", c.GetURLHandler)
 	r.Route("/api", func(r chi.Router) {
-		//r.Route("/user/urls", func(r chi.Router) {
-		//	r.Delete("/", c.DeleteURLs)
-		//	r.Get("/", c.GetUserURLs)
-		//})
 		r.Delete("/user/urls", c.DeleteURLs)
 		r.Get("/user/urls", c.GetUserURLs)
 		r.Route("/shorten", func(r chi.Router) {
