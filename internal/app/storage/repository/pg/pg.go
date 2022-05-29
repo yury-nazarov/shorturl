@@ -142,9 +142,9 @@ func (p *pg) Get(ctx context.Context, shortURL string, token string) (string, er
 										AND owner=(SELECT id FROM owner WHERE token=$2)
 										LIMIT 1`, urlID, token).Scan(&isDelete)
 	if err != nil {
-		return "",  fmt.Errorf("sql SELECT delete FORM shorten_url: %w", err)
+		log.Printf("sql SELECT delete FORM shorten_url: %s", err)
 	}
-	fmt.Println("isDelete:", isDelete)
+
 	// Возвращаем пустую строку если URL помечен как удаленный
 	if isDelete {
 		return "", nil
