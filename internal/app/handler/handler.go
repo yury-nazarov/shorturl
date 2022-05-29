@@ -234,16 +234,22 @@ func (c *Controller) DeleteURLs(w http.ResponseWriter, r *http.Request) {
 
 	// Получаем id записей которые нужно пометить удаленными
 	var urlsID []int
+	log.Println("Start filling urlsID:", urlsID)
 	for _, identity := range urlIdentityList {
+		//go func(identity string) {
 		id := c.db.GetShortURLByIdentityPath(r.Context(), identity, token.Value)
 		urlsID = append(urlsID, id)
+		//}(identity)
 	}
+	log.Println("Stop filling urlsID:", urlsID)
 
 	// Помечаем удаленными пачку записей
+	log.Println("Start URLBulkDelete:")
 	if err = c.db.URLBulkDelete(r.Context(), urlsID); err != nil {
 		log.Printf("%s", err)
 		w.WriteHeader(http.StatusInternalServerError)
 	}
+	log.Println("Stop URLBulkDelete:")
 	w.WriteHeader(http.StatusAccepted)
 }
 
