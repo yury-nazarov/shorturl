@@ -10,7 +10,8 @@ type Repository interface {
 	GetOwnerToken(ctx context.Context, token string) Owner
 	GetUserURL(ctx context.Context, token string) ([]RecordURL, error)
 	GetShortURLByIdentityPath(ctx context.Context, identityPath string, token string) int
-	URLBulkDelete(ctx context.Context, idList []int) error
+	//URLBulkDelete(ctx context.Context, idList []int) error
+	URLBulkDelete(ctx context.Context, urlsID chan int) error
 	Ping() bool
 	OriginURLExists(ctx context.Context, originURL string) (bool, error)
 }

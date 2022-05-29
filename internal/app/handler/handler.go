@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"sync"
 
 	"github.com/yury-nazarov/shorturl/internal/app/service"
 	"github.com/yury-nazarov/shorturl/internal/app/storage/repository"
@@ -233,25 +234,83 @@ func (c *Controller) DeleteURLs(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Получаем id записей которые нужно пометить удаленными
-	var urlsID []int
-	log.Println("Start filling urlsID:", urlsID)
+	urlsID := make(chan int, len(urlIdentityList))
+
+	log.Println("DEBUG: Start filling urlsID:", urlsID)
+	var wg sync.WaitGroup
 	for _, identity := range urlIdentityList {
-		//go func(identity string) {
-		id := c.db.GetShortURLByIdentityPath(r.Context(), identity, token.Value)
-		urlsID = append(urlsID, id)
-		//}(identity)
+		wg.Add(1)
+		go func(identity string) {
+			fmt.Println("DEBUG identity:", identity)
+			id := c.db.GetShortURLByIdentityPath(r.Context(), identity, token.Value)
+			urlsID <- id
+			wg.Done()
+		}(identity)
 	}
-	log.Println("Stop filling urlsID:", urlsID)
+	// Закрываем канал когда он заполнился
+	wg.Wait()
+	close(urlsID)
+	log.Println("DEBUG: Stop filling urlsID:", urlsID)
 
 	// Помечаем удаленными пачку записей
-	log.Println("Start URLBulkDelete:")
-	if err = c.db.URLBulkDelete(r.Context(), urlsID); err != nil {
-		log.Printf("%s", err)
-		w.WriteHeader(http.StatusInternalServerError)
-	}
-	log.Println("Stop URLBulkDelete:")
+	log.Println("DEBUG: Start URLBulkDelete:")
+	//go func() {
+		if err = c.db.URLBulkDelete(r.Context(), urlsID); err != nil {
+			log.Printf("%s", err)
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+		log.Println("DEBUG: Stop URLBulkDelete:")
+	//}()
+
 	w.WriteHeader(http.StatusAccepted)
 }
+
+//func (c *Controller) DeleteURLs(w http.ResponseWriter, r *http.Request) {
+//	// Читаем из body [ "a", "b", "c", "d", ...] сериализовать в JSON
+//	bodyData, err := io.ReadAll(r.Body)
+//	if err != nil {
+//		w.WriteHeader(http.StatusInternalServerError)
+//	}
+//
+//	if len(bodyData) == 0 {
+//		w.WriteHeader(http.StatusBadRequest)
+//		return
+//	}
+//
+//	// Конвертируем в JSON данные из body
+//	var urlIdentityList []string
+//	if err = json.Unmarshal(bodyData, &urlIdentityList); err != nil {
+//		w.WriteHeader(http.StatusBadRequest)
+//	}
+//
+//	// Получаем токен пользователя пользователя если токена нет - удалять нечего
+//	token, err := r.Cookie("session_token")
+//	if err != nil {
+//		w.WriteHeader(http.StatusNoContent)
+//		return
+//	}
+//
+//	// Получаем id записей которые нужно пометить удаленными
+//	var urlsID []int
+//	//urlsID := make(chan int, len(urlIdentityList))
+//	log.Println("Start filling urlsID:", urlsID)
+//	for _, identity := range urlIdentityList {
+//		//go func(identity string) {
+//		id := c.db.GetShortURLByIdentityPath(r.Context(), identity, token.Value)
+//		urlsID = append(urlsID, id)
+//		//}(identity)
+//	}
+//	log.Println("Stop filling urlsID:", urlsID)
+//
+//	// Помечаем удаленными пачку записей
+//	log.Println("Start URLBulkDelete:")
+//	if err = c.db.URLBulkDelete(r.Context(), urlsID); err != nil {
+//		log.Printf("%s", err)
+//		w.WriteHeader(http.StatusInternalServerError)
+//	}
+//	log.Println("Stop URLBulkDelete:")
+//	w.WriteHeader(http.StatusAccepted)
+//}
 
 func (c *Controller) DefaultHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusBadRequest)

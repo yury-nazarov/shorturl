@@ -152,7 +152,8 @@ func (f *fileDB) GetShortURLByIdentityPath(ctx context.Context, identityPath str
 }
 
 // URLBulkDelete Для обратной совместимости с Postgres
-func (f *fileDB) URLBulkDelete(ctx context.Context, idList []int) error {
+//func (f *fileDB) URLBulkDelete(ctx context.Context, idList []int) error {
+func (f *fileDB) URLBulkDelete(ctx context.Context,  urlsID chan int) error {
 	return nil
 }
 

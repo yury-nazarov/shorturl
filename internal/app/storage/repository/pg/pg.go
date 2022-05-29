@@ -2,12 +2,10 @@ package pg
 
 import (
 	"context"
-	"fmt"
-	"log"
-	"strconv"
-
 	"database/sql"
+	"fmt"
 	_ "github.com/jackc/pgx/v4/stdlib"
+	"log"
 
 	"github.com/yury-nazarov/shorturl/internal/app/storage/repository"
 )
@@ -257,7 +255,8 @@ func (p *pg) OriginURLExists(ctx context.Context, originURL string) (bool, error
 
 
 // URLBulkDelete помечает удаленным в таблице shorten_url. delete=true
-func (p *pg) URLBulkDelete(ctx context.Context, idList []int) error {
+//func (p *pg) URLBulkDelete(ctx context.Context, idList []int) error {
+func (p *pg) URLBulkDelete(ctx context.Context,  urlsID chan int) error {
 	// шаг 1 — объявляем транзакцию
 	tx, err := p.db.Begin()
 	if err != nil {
@@ -273,12 +272,39 @@ func (p *pg) URLBulkDelete(ctx context.Context, idList []int) error {
 	}
 	defer stmt.Close()
 
-	for _, id := range idList {
-		// шаг 3 - указываем, что для каждого id в таблице shorten_url нужно обновить поле delete
-		if _, err = stmt.ExecContext(ctx, strconv.Itoa(id)); err != nil {
+	// TODO: FanIn использовать для максимального быстрого наполнения буфера объектов обновления
+	// шаг 3 - указываем, что для каждого id в таблице shorten_url нужно обновить поле delete
+	for id := range urlsID{
+		if _, err = stmt.ExecContext(ctx, id); err != nil {
 			return fmt.Errorf("sql | transaction statement exec context err %w", err)
 		}
 	}
 	// шаг 4 — сохраняем изменения
 	return tx.Commit()
 }
+
+//func (p *pg) URLBulkDelete(ctx context.Context, idList []int) error {
+//	// шаг 1 — объявляем транзакцию
+//	tx, err := p.db.Begin()
+//	if err != nil {
+//		return fmt.Errorf("sql | transaction begin err: %w", err)
+//	}
+//	// если возникает ошибка, откатываем изменения
+//	defer tx.Rollback()
+//
+//	// шаг 2 — готовим инструкцию
+//	stmt, err := tx.PrepareContext(ctx, "UPDATE shorten_url SET delete=true WHERE id=$1")
+//	if err != nil {
+//		return fmt.Errorf("sql | transaction prepare context err err 2 %w", err)
+//	}
+//	defer stmt.Close()
+//
+//	for _, id := range idList {
+//		// шаг 3 - указываем, что для каждого id в таблице shorten_url нужно обновить поле delete
+//		if _, err = stmt.ExecContext(ctx, strconv.Itoa(id)); err != nil {
+//			return fmt.Errorf("sql | transaction statement exec context err %w", err)
+//		}
+//	}
+//	// шаг 4 — сохраняем изменения
+//	return tx.Commit()
+//}
