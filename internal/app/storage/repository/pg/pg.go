@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strconv"
 
 	"database/sql"
 	_ "github.com/jackc/pgx/v4/stdlib"
@@ -13,13 +14,13 @@ import (
 
 type pg struct {
 	db *sql.DB
-	//db *pgxpool.Pool
-	ctx context.Context
+
 }
 
-// New - врнет ссылку на пулл соединений с PG
+// New - врнет ссылку на соединение с PG
 func New(connStr string) *pg {
 	db, err := sql.Open("pgx", connStr)
+
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -247,14 +248,6 @@ func (p *pg) GetShortURLByIdentityPath(ctx context.Context, identityPath string,
 	return urlID
 }
 
-// URLMarkDeleted помечает удаленным в таблице shorten_url. delete=true
-func (p *pg) URLMarkDeleted(ctx context.Context, id int) {
-	_, err := p.db.ExecContext(ctx, `UPDATE shorten_url SET delete=true WHERE id=$1`, id)
-	if err != nil {
-		log.Println("sql mark delete err", err)
-	}
-
-}
 
 // OriginURLExists - проверяет наличие URL в БД
 func (p *pg) OriginURLExists(ctx context.Context, originURL string) (bool, error) {
@@ -267,4 +260,32 @@ func (p *pg) OriginURLExists(ctx context.Context, originURL string) (bool, error
 		return false, nil
 	}
 	return true, nil
+}
+
+
+// URLBulkDelete помечает удаленным в таблице shorten_url. delete=true
+func (p *pg) URLBulkDelete(ctx context.Context, idList []int) error {
+	// шаг 1 — объявляем транзакцию
+	tx, err := p.db.Begin()
+	if err != nil {
+		return fmt.Errorf("err 1 %w", err)
+	}
+	// если возникает ошибка, откатываем изменения
+	defer tx.Rollback()
+
+	// шаг 2 — готовим инструкцию
+	stmt, err := tx.PrepareContext(ctx, "UPDATE shorten_url SET delete=true WHERE id=$1")
+	if err != nil {
+		return fmt.Errorf("err 2 %w", err)
+	}
+	defer stmt.Close()
+
+	for _, id := range idList {
+		// шаг 3 - указываем, что для каждого id в таблице shorten_url нужно обновить поле delete
+		if _, err = stmt.ExecContext(ctx, strconv.Itoa(id)); err != nil {
+			return fmt.Errorf("err 3 %w", err)
+		}
+	}
+	// шаг 4 — сохраняем изменения
+	return tx.Commit()
 }

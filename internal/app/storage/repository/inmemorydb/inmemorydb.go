@@ -87,3 +87,8 @@ func (u *inMemoryDB) GetShortURLByIdentityPath(ctx context.Context,identityPath 
 
 // URLMarkDeleted Для обратной совместимости с Postgres
 func (u *inMemoryDB) URLMarkDeleted(ctx context.Context, id int) {}
+
+// URLBulkDelete Для обратной совместимости с Postgres
+func (u *inMemoryDB) URLBulkDelete(ctx context.Context, idList []int) error {
+	return nil
+}

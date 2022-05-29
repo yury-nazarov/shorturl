@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -15,7 +14,7 @@ import (
 type Controller struct {
 	db repository.Repository
 	lc service.LinkCompressor
-	ctx context.Context
+	//ctx context.Context
 }
 
 type URL struct {
@@ -209,7 +208,7 @@ func (c *Controller) GetUserURLs(w http.ResponseWriter, r *http.Request) {
 // DeleteURLs помечает удаленными URL по идентификатору (сокращенная часть url)
 //			  202 Accepted - успешное выполнение запроса пользователем его создавшем
 func (c *Controller) DeleteURLs(w http.ResponseWriter, r *http.Request) {
-	// 1. Прочитать из body [ "a", "b", "c", "d", ...] сериализовать в JSON
+	// Читаем из body [ "a", "b", "c", "d", ...] сериализовать в JSON
 	bodyData, err := io.ReadAll(r.Body)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -226,39 +225,26 @@ func (c *Controller) DeleteURLs(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 	}
 
-	// 1.1. Получаем токен пользователя пользователя
-	// 		если токена нет - удалять нечего
+	// Получаем токен пользователя пользователя если токена нет - удалять нечего
 	token, err := r.Cookie("session_token")
 	if err != nil {
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}
-	// fmt.Fprint(w, token.Value) // 3daa3dfdf17db865188026b7cc02e1b1f5c96bee2de9d247734f8b06c325a6be
 
-	// 2. В цикле, пройтись по списку:
-	//	  2.1:
-	// 		TODO: Можно реализовать паттерн Fan-Out поместив в канал идентификаторы и выполняя SELECT в несколько потоков
-	// 		 	  (но скорее всего бутылочное горлышко будет в тестах практикума)
-	//
+	// Получаем id записей которые нужно пометить удаленными
 	var urlsID []int
 	for _, identity := range urlIdentityList {
 		id := c.db.GetShortURLByIdentityPath(r.Context(), identity, token.Value)
 		urlsID = append(urlsID, id)
 	}
 
-	// Помечаем как удаленные
-	for _, id := range urlsID {
-		go c.db.URLMarkDeleted(r.Context(), id)
+	// Помечаем удаленными пачку записей
+	if err = c.db.URLBulkDelete(r.Context(), urlsID); err != nil {
+		log.Printf("%s", err)
+		w.WriteHeader(http.StatusInternalServerError)
 	}
-	log.Println(urlsID)
 	w.WriteHeader(http.StatusAccepted)
-
-	//     2.2:
-	// 		TODO: Релизовать паттерн Fan-In читая из канала и
-	//		UPDATE shorten_url SET delete=true WHERE id=id
-	//	   2.3
-	//  	TODO: * формируем буфер batch update (pgx prepare statement)
-
 }
 
 func (c *Controller) DefaultHandler(w http.ResponseWriter, r *http.Request) {
