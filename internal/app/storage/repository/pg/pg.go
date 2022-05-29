@@ -127,10 +127,9 @@ func (p *pg) Add(ctx context.Context, shortURL string, longURL string, token str
 func (p *pg) Get(ctx context.Context, shortURL string, token string) (string, error) {
 	var urlID int
 	var originURL string
-	//var isDelete bool
+	var isDelete bool
 
 	// Получаем оргинальный URL
-	//err := p.db.QueryRow(p.ctx, `SELECT id, origin FROM url WHERE short=$1 LIMIT 1`, shortURL).Scan(&urlID, &originURL)
 	err := p.db.QueryRowContext(ctx, `SELECT id, origin FROM url WHERE short=$1 LIMIT 1`, shortURL).Scan(&urlID, &originURL)
 	if err != nil {
 		return "",  fmt.Errorf("sql url not found: %w", err)
@@ -138,23 +137,18 @@ func (p *pg) Get(ctx context.Context, shortURL string, token string) (string, er
 
 
 	// Получаем статус URL для конкретного пользователя (удален/не удален)
-	//isDelete, err := p.db.Exec(ctx, `SELECT delete FROM shorten_url
-	//									WHERE url=$1
-	//									AND owner=(SELECT id FROM owner WHERE token=$2)
-	//									LIMIT 1`, urlID, token)
-	// TODO: Есть более изящный способ, вчера видел!!!
-	//isDelete, err := p.db.ExecContext(p.ctx, `SELECT delete FROM shorten_url
-	//									WHERE url=$1
-	//									AND owner=(SELECT id FROM owner WHERE token=$2)
-	//									LIMIT 1`, urlID, token)
-	//if err != nil {
-	//	return "",  fmt.Errorf("sql SELECT delete FORM shorten_url: %w", err)
-	//}
-
-	//// Возвращаем пустую строку если URL помечен как удаленный
-	//if isDelete.String() == "true" {
-	//	return "", nil
-	//}
+	err = p.db.QueryRowContext(ctx, `SELECT delete FROM shorten_url
+										WHERE url=$1
+										AND owner=(SELECT id FROM owner WHERE token=$2)
+										LIMIT 1`, urlID, token).Scan(&isDelete)
+	if err != nil {
+		return "",  fmt.Errorf("sql SELECT delete FORM shorten_url: %w", err)
+	}
+	fmt.Println("isDelete:", isDelete)
+	// Возвращаем пустую строку если URL помечен как удаленный
+	if isDelete {
+		return "", nil
+	}
 	// Возвращаем оригинальный URL если помечен как не удаленный
 	return originURL, nil
 }
