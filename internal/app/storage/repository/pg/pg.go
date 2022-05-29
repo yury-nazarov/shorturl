@@ -199,7 +199,6 @@ func (p *pg) URLBulkDelete(ctx context.Context,  urlsID chan int) error {
 	}
 	defer stmt.Close()
 
-	// TODO: FanIn использовать для максимального быстрого наполнения буфера объектов обновления
 	// шаг 3 - указываем, что для каждого id в таблице shorten_url нужно обновить поле delete
 	for id := range urlsID{
 		fmt.Printf("DEBUG: transaction statement prepare delete url with ID:%d\n", id)
@@ -243,7 +242,7 @@ func (p *pg) URLBulkDelete(ctx context.Context,  urlsID chan int) error {
 // GetToken - Проверяет наличие токена в БД
 func (p *pg) GetToken(ctx context.Context, token string) (bool, error) {
 	owner := repository.Owner{}
-	if err := p.db.QueryRowContext(ctx, `SELECT id FROM owner WHERE token=$1 LIMIT 1;`, token).Scan(&owner.ID); err != nil {
+	if err := p.db.QueryRowContext(ctx, `SELECT id FROM shorten_url WHERE owner=$1 LIMIT 1;`, token).Scan(&owner.ID); err != nil {
 		return false, fmt.Errorf("sql | token not found: %w", err)
 	}
 	return true, nil
@@ -282,5 +281,6 @@ func (p *pg) OriginURLExists(ctx context.Context, originURL string) (bool, error
 	if len(url.origin) == 0 {
 		return false, nil
 	}
+	log.Println("!!!!!!!!!!")
 	return true, nil
 }

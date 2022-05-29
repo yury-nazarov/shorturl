@@ -115,12 +115,15 @@ func (c *Controller) AddURLHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	// Сокращаем url и добавляем в БД: сокращенный url, оригинальный url, token идентификатор пользователя
 	shortURL := c.lc.SortURL(originURL)
-	token, err := r.Cookie("session_token")
-	if err != nil {
-		log.Print("AddURLHandler: err:",err)
-	}
-	if err = c.db.Add(r.Context(), shortURL, originURL, token.Value); err != nil {
-		log.Print(err)
+	// Добавляем в БД только если URL нет в БД
+	if originURLExists == false {
+		token, err := r.Cookie("session_token")
+		if err != nil {
+			log.Print("AddURLHandler: err:",err)
+		}
+		if err = c.db.Add(r.Context(), shortURL, originURL, token.Value); err != nil {
+			log.Print(err)
+		}
 	}
 
 	// HTTP Response
@@ -230,7 +233,7 @@ func (c *Controller) DeleteURLs(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 	}
 
-	// Получаем токен пользователя пользователя если токена нет - удалять нечего
+	// Получаем токен пользователя пользователя, если токена нет - удалять нечего
 	token, err := r.Cookie("session_token")
 	if err != nil {
 		w.WriteHeader(http.StatusNoContent)

@@ -74,11 +74,11 @@ func (u *inMemoryDB) OriginURLExists(ctx context.Context, originURL string) (boo
 	return false, nil
 }
 
-// GetOwnerToken Для обратной совместимости с Postgres
-func (u *inMemoryDB) GetOwnerToken(ctx context.Context, token string) repository.Owner {
-	owner := repository.Owner{}
-	return owner
-}
+//// GetOwnerToken Для обратной совместимости с Postgres
+//func (u *inMemoryDB) GetOwnerToken(ctx context.Context, token string) repository.Owner {
+//	owner := repository.Owner{}
+//	return owner
+//}
 
 // GetShortURLByIdentityPath Для обратной совместимости с Postgres
 func (u *inMemoryDB) GetShortURLByIdentityPath(ctx context.Context,identityPath string, token string) int {

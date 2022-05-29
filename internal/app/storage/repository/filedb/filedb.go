@@ -140,11 +140,11 @@ func (f *fileDB) OriginURLExists(ctx context.Context, originURL string) (bool, e
 	return false, nil
 }
 
-// GetOwnerToken Для обратной совместимости с Postgres
-func (f *fileDB) GetOwnerToken(ctx context.Context, token string) repository.Owner {
-	owner := repository.Owner{}
-	return owner
-}
+//// GetOwnerToken Для обратной совместимости с Postgres
+//func (f *fileDB) GetOwnerToken(ctx context.Context, token string) repository.Owner {
+//	owner := repository.Owner{}
+//	return owner
+//}
 
 // GetShortURLByIdentityPath Для обратной совместимости с Postgres
 func (f *fileDB) GetShortURLByIdentityPath(ctx context.Context, identityPath string, token string) int {
