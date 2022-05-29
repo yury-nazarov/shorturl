@@ -132,9 +132,8 @@ func (p *pg) Get(ctx context.Context, shortURL string, token string) (string, er
 	// Получаем оргинальный URL
 	err := p.db.QueryRowContext(ctx, `SELECT id, origin FROM url WHERE short=$1 LIMIT 1`, shortURL).Scan(&urlID, &originURL)
 	if err != nil {
-		return "",  fmt.Errorf("sql url not found: %w", err)
+		return "",  fmt.Errorf("sql | url not found: %w", err)
 	}
-
 
 	// Получаем статус URL для конкретного пользователя (удален/не удален)
 	err = p.db.QueryRowContext(ctx, `SELECT delete FROM shorten_url
@@ -142,7 +141,7 @@ func (p *pg) Get(ctx context.Context, shortURL string, token string) (string, er
 										AND owner=(SELECT id FROM owner WHERE token=$2)
 										LIMIT 1`, urlID, token).Scan(&isDelete)
 	if err != nil {
-		log.Printf("sql SELECT delete FORM shorten_url: %s", err)
+		log.Printf("sql |  get url status err: %s", err)
 	}
 
 	// Возвращаем пустую строку если URL помечен как удаленный
@@ -157,7 +156,7 @@ func (p *pg) Get(ctx context.Context, shortURL string, token string) (string, er
 func (p *pg) GetToken(ctx context.Context, token string) (bool, error) {
 	owner := repository.Owner{}
 	if err := p.db.QueryRowContext(ctx, `SELECT id FROM owner WHERE token=$1 LIMIT 1;`, token).Scan(&owner.ID); err != nil {
-		return false, fmt.Errorf("token not found: %w", err)
+		return false, fmt.Errorf("sql | token not found: %w", err)
 	}
 	return true, nil
 }
@@ -195,7 +194,7 @@ func (p *pg) GetUserURL(ctx context.Context, token string) ([]repository.RecordU
 		urls = append(urls, ownerURL)
 	}
 	if err = rows.Err(); err != nil {
-		log.Printf("sql get users url err: %s\n", err)
+		log.Printf("sql | get users url err: %s\n", err)
 	}
 	return urls, nil
 }
@@ -224,7 +223,7 @@ func (p *pg) GetOwnerToken(ctx context.Context, token string) repository.Owner {
 	owner := repository.Owner{}
 	// Проверяем наличие пользователя в БД с определенным token
 	if err := p.db.QueryRowContext(ctx, `SELECT id FROM owner WHERE token=$1 LIMIT 1;`, token).Scan(&owner.ID); err != nil {
-		log.Printf("sql select token err: %s", err)
+		log.Printf("sql | select token err: %s", err)
 	}
 	return owner
 }
@@ -237,7 +236,7 @@ func (p *pg) GetShortURLByIdentityPath(ctx context.Context, identityPath string,
 											AND owner=(SELECT id FROM owner WHERE token=$2);`,
 											"%"+identityPath, token).Scan(&urlID)
 	if err != nil {
-		log.Printf("sql select short url by identity path was err: %s", err)
+		log.Printf("sql | select short url by identity path err: %s", err)
 	}
 	return urlID
 }
@@ -262,7 +261,7 @@ func (p *pg) URLBulkDelete(ctx context.Context, idList []int) error {
 	// шаг 1 — объявляем транзакцию
 	tx, err := p.db.Begin()
 	if err != nil {
-		return fmt.Errorf("err 1 %w", err)
+		return fmt.Errorf("sql | transaction begin err: %w", err)
 	}
 	// если возникает ошибка, откатываем изменения
 	defer tx.Rollback()
@@ -270,14 +269,14 @@ func (p *pg) URLBulkDelete(ctx context.Context, idList []int) error {
 	// шаг 2 — готовим инструкцию
 	stmt, err := tx.PrepareContext(ctx, "UPDATE shorten_url SET delete=true WHERE id=$1")
 	if err != nil {
-		return fmt.Errorf("err 2 %w", err)
+		return fmt.Errorf("sql | transaction prepare context err err 2 %w", err)
 	}
 	defer stmt.Close()
 
 	for _, id := range idList {
 		// шаг 3 - указываем, что для каждого id в таблице shorten_url нужно обновить поле delete
 		if _, err = stmt.ExecContext(ctx, strconv.Itoa(id)); err != nil {
-			return fmt.Errorf("err 3 %w", err)
+			return fmt.Errorf("sql | transaction statement exec context err %w", err)
 		}
 	}
 	// шаг 4 — сохраняем изменения
