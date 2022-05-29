@@ -156,6 +156,7 @@ func (c *Controller) GetURLHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 	}
+	log.Printf("DEBUG: User: %s get URL: %s -> %s\n", token,  shortURL, originURL)
 
 	// HTTP 410 если url помечен как удаленный
 	if len(originURL) == 0 {
@@ -211,6 +212,7 @@ func (c *Controller) GetUserURLs(w http.ResponseWriter, r *http.Request) {
 func (c *Controller) DeleteURLs(w http.ResponseWriter, r *http.Request) {
 	// Читаем из body [ "a", "b", "c", "d", ...] сериализовать в JSON
 	bodyData, err := io.ReadAll(r.Body)
+	log.Println("bodyData:", string(bodyData))
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
@@ -241,8 +243,8 @@ func (c *Controller) DeleteURLs(w http.ResponseWriter, r *http.Request) {
 	for _, identity := range urlIdentityList {
 		wg.Add(1)
 		go func(identity string) {
-			fmt.Println("DEBUG identity:", identity)
 			id := c.db.GetShortURLByIdentityPath(r.Context(), identity, token.Value)
+			fmt.Printf("DEBUG: Prepare mark deleted URL identity: %s with ID: %d\n", identity, id)
 			urlsID <- id
 			wg.Done()
 		}(identity)

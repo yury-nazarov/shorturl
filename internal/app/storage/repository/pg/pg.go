@@ -275,11 +275,13 @@ func (p *pg) URLBulkDelete(ctx context.Context,  urlsID chan int) error {
 	// TODO: FanIn использовать для максимального быстрого наполнения буфера объектов обновления
 	// шаг 3 - указываем, что для каждого id в таблице shorten_url нужно обновить поле delete
 	for id := range urlsID{
+		fmt.Printf("DEBUG: transaction statement prepare delete url with ID:%d\n", id)
 		if _, err = stmt.ExecContext(ctx, id); err != nil {
 			return fmt.Errorf("sql | transaction statement exec context err %w", err)
 		}
 	}
 	// шаг 4 — сохраняем изменения
+	fmt.Printf("DEBUG: Commit transaction\n")
 	return tx.Commit()
 }
 
