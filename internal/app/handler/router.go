@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"github.com/sirupsen/logrus"
 	"net/http"
 
 	appMiddleware "github.com/yury-nazarov/shorturl/internal/app/middleware"
@@ -10,7 +11,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 )
 
-func NewRouter(c *Controller, db repository.Repository) http.Handler {
+func NewRouter(c *Controller, db repository.Repository, logger *logrus.Logger) http.Handler {
 	// Инициируем Router
 	r := chi.NewRouter()
 
@@ -24,7 +25,7 @@ func NewRouter(c *Controller, db repository.Repository) http.Handler {
 	r.Use(appMiddleware.HTTPRequestDecompressor)
 	// Передае в middleware соеденение с БД
 	r.Use(appMiddleware.HTTPCookieAuth(db))
-
+	c.logger.Info("the middleware success init")
 
 	// API endpoints
 	r.HandleFunc("/", c.DefaultHandler)
@@ -39,5 +40,6 @@ func NewRouter(c *Controller, db repository.Repository) http.Handler {
 		})
 	})
 	r.HandleFunc("/ping", c.PingDB)
+	c.logger.Info("the handler endpoint success init")
 	return r
 }

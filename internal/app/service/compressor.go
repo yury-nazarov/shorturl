@@ -6,19 +6,23 @@ import (
 	"math/big"
 
 	"github.com/itchyny/base58-go"
+	"github.com/sirupsen/logrus"
 )
 
 type LinkCompressor struct {
 	urlLength   int
 	ServiceName string
+	logger 		*logrus.Logger
 }
 
 // NewLinkCompressor - объект содержит в себе все необходимое для подготови короткого URL
-func NewLinkCompressor(urlLength int, urlAnswer string) LinkCompressor {
+func NewLinkCompressor(urlLength int, urlAnswer string, logger *logrus.Logger) LinkCompressor {
 	lc := LinkCompressor{
 		urlLength:   urlLength,
 		ServiceName: urlAnswer,
+		logger: logger,
 	}
+	logger.Info("the link compressor success init")
 	return lc
 }
 

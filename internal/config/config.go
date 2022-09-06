@@ -4,6 +4,7 @@ import (
 	"flag"
 
 	"github.com/caarlos0/env/v6"
+	"github.com/sirupsen/logrus"
 )
 
 //  Получаем конфигурацию из переменных или флагов
@@ -15,7 +16,7 @@ type config struct {
 	DatabaseDSN      string `env:"DATABASE_DSN"`
 }
 
-func NewConfig() (config, error) {
+func NewConfig(logger *logrus.Logger) (config, error) {
 	cfg := config{}
 	flag.StringVar(&cfg.ServerAddress, "a", cfg.ServerAddress, "set server address, by example: 127.0.0.1:8080")
 	flag.StringVar(&cfg.BaseURL, "b", cfg.BaseURL, "set base URL, by example: http://127.0.0.1:8080")
@@ -26,5 +27,6 @@ func NewConfig() (config, error) {
 		return cfg, err
 	}
 	flag.Parse()
+	logger.Info("the config success init")
 	return cfg, nil
 }

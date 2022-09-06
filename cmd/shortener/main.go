@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/yury-nazarov/shorturl/internal/app/handler"
@@ -12,24 +11,24 @@ import (
 )
 
 func main() {
-	// ИНициируем логгер
+	// Инициируем логгер
 	logger := logger.New()
 
 	// Инициируем конфиг: аргументы cli > env
-	cfg, err := config.NewConfig()
+	cfg, err := config.NewConfig(logger)
 	if err != nil {
 		logger.Fatal(err)
 	}
 	// Инициируем БД
-	db := storage.New(storage.DBConfig{FileName: cfg.FileStoragePath, PGConnStr: cfg.DatabaseDSN})
+	db := storage.New(storage.DBConfig{FileName: cfg.FileStoragePath, PGConnStr: cfg.DatabaseDSN}, logger)
 	// Создаем объект для доступа к методам компрессии URL
-	lc := service.NewLinkCompressor(5, cfg.BaseURL)
+	linkCompressor := service.NewLinkCompressor(5, cfg.BaseURL, logger)
 	// Инициируем объект для доступа к хендлерам
-	c := handler.NewController(db, lc)
+	controller := handler.NewController(db, linkCompressor, logger)
 	// Инициируем роутер
-	r := handler.NewRouter(c, db)
+	r := handler.NewRouter(controller, db, logger)
 	// Запускаем сервер
-	log.Println("run server on", cfg.ServerAddress)
-	log.Fatal(http.ListenAndServe(cfg.ServerAddress, r))
+	logger.Info("the server run on ", cfg.ServerAddress)
+	logger.Fatal(http.ListenAndServe(cfg.ServerAddress, r))
 }
 
