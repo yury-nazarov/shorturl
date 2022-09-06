@@ -21,7 +21,7 @@ func main() {
 }
 
 func run() {
-
+	// ИНициируем логгер
 	log := logger.New()
 
 	// Инициируем конфиг: аргументы cli > env
