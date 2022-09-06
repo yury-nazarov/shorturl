@@ -10,6 +10,7 @@ require (
 )
 
 require (
+	github.com/caarlos0/env/v6 v6.10.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.12.0 // indirect

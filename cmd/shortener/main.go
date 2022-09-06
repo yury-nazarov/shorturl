@@ -1,18 +1,18 @@
 package main
 
 import (
-	"flag"
 	"log"
 	"net/http"
-	"os"
 
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
 
 	"github.com/yury-nazarov/shorturl/internal/app/handler"
 	appMiddleware "github.com/yury-nazarov/shorturl/internal/app/middleware"
 	"github.com/yury-nazarov/shorturl/internal/app/service"
 	"github.com/yury-nazarov/shorturl/internal/app/storage"
+	"github.com/yury-nazarov/shorturl/internal/config"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 )
 
 
@@ -21,30 +21,17 @@ func main() {
 }
 
 func run() {
-	// Парсим аргументы командной строки
-	serverAddressFlag 	:= flag.String("a", "", "set server address, by example: 127.0.0.1:8080")
-	baseURLFlag 		:= flag.String("b", "", "set base URL, by example: http://127.0.0.1:8080")
-	fileStoragePathFlag := flag.String("f", "", "set file path for storage, by example: db.txt")
-	dataBaseStringFlag  := flag.String("d", "", "set database string for Postgres, by example: 'host=localhost port=5432 user=example password=123 dbname=example sslmode=disable connect_timeout=5'")
-	flag.Parse()
 
-	// Получаем переменные окружения
-	serverAddressEnv 	:= os.Getenv("SERVER_ADDRESS")
-	baseURLEnv 			:= os.Getenv("BASE_URL")
-	fileStoragePathEnv 	:= os.Getenv("FILE_STORAGE_PATH")
-	dataBaseStringEnv 	:= os.Getenv("DATABASE_DSN")
 
-	// Устанавливаем конфигурационные параметры по приоритету:
-	// 		1. Флаги;
-	// 		2. Переменные окружения;
-	// 		3. Дефолтное значение.
-	serverAddress 	:= serverConfigInit(*serverAddressFlag, serverAddressEnv, "127.0.0.1:8080")
-	baseURL 		:= serverConfigInit(*baseURLFlag, baseURLEnv, "http://127.0.0.1:8080")
-	dbFileName 		:= serverConfigInit(*fileStoragePathFlag, fileStoragePathEnv, "")
-	PGConnStr		:= serverConfigInit(*dataBaseStringFlag, dataBaseStringEnv, "")
+	// Инициируем конфиг: аргументы cli > env
+	cfg, err := config.NewConfig()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// Инициируем БД
-	db := storage.New(storage.DBConfig{FileName: dbFileName, PGConnStr: PGConnStr})
+	//db := storage.New(storage.DBConfig{FileName: dbFileName, PGConnStr: PGConnStr})
+	db := storage.New(storage.DBConfig{FileName: cfg.FileStoragePath, PGConnStr: cfg.DatabaseDSN})
 
 	// Инициируем Router
 	r := chi.NewRouter()
@@ -62,7 +49,7 @@ func run() {
 	r.Use(appMiddleware.HTTPCookieAuth(db))
 
 	// Создаем объект для доступа к методам компрессии URL
-	lc := service.NewLinkCompressor(5, baseURL)
+	lc := service.NewLinkCompressor(5, cfg.BaseURL)
 	// Инициируем объект для доступа к хендлерам
 	c := handler.NewController(db, lc)
 
@@ -83,7 +70,7 @@ func run() {
 
 
 	// Запускаем сервер
-	log.Fatal(http.ListenAndServe(serverAddress, r))
+	log.Fatal(http.ListenAndServe(cfg.ServerAddress, r))
 }
 
 // serverConfigInit - возвращает приоритетное значение из переданых аргументов
