@@ -39,15 +39,3 @@ func run() {
 	log.Println("run server on", cfg.ServerAddress)
 	log.Fatal(http.ListenAndServe(cfg.ServerAddress, r))
 }
-
-// serverConfigInit - возвращает приоритетное значение из переданых аргументов
-func serverConfigInit(flag string, env string, defaultValue string) string {
-	if len(flag) != 0 {
-		return flag
-	}
-	if len(env) != 0 {
-		return env
-	}
-	return defaultValue
-
-}
