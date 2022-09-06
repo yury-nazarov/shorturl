@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"net/http"
 
 
@@ -10,6 +9,7 @@ import (
 	"github.com/yury-nazarov/shorturl/internal/app/service"
 	"github.com/yury-nazarov/shorturl/internal/app/storage"
 	"github.com/yury-nazarov/shorturl/internal/config"
+	"github.com/yury-nazarov/shorturl/internal/logger"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -21,6 +21,8 @@ func main() {
 }
 
 func run() {
+
+	log := logger.New()
 
 	// Инициируем конфиг: аргументы cli > env
 	cfg, err := config.NewConfig()
