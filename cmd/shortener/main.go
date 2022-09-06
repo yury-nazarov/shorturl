@@ -22,7 +22,6 @@ func main() {
 
 func run() {
 
-
 	// Инициируем конфиг: аргументы cli > env
 	cfg, err := config.NewConfig()
 	if err != nil {
@@ -30,7 +29,6 @@ func run() {
 	}
 
 	// Инициируем БД
-	//db := storage.New(storage.DBConfig{FileName: dbFileName, PGConnStr: PGConnStr})
 	db := storage.New(storage.DBConfig{FileName: cfg.FileStoragePath, PGConnStr: cfg.DatabaseDSN})
 
 	// Инициируем Router
@@ -70,6 +68,7 @@ func run() {
 
 
 	// Запускаем сервер
+	log.Println("run server on", cfg.ServerAddress)
 	log.Fatal(http.ListenAndServe(cfg.ServerAddress, r))
 }
 
