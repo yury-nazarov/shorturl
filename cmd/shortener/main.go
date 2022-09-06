@@ -1,13 +1,14 @@
 package main
 
 import (
+	"log"
+	"net/http"
+
 	"github.com/yury-nazarov/shorturl/internal/app/handler"
 	"github.com/yury-nazarov/shorturl/internal/app/service"
 	"github.com/yury-nazarov/shorturl/internal/app/storage"
 	"github.com/yury-nazarov/shorturl/internal/config"
 	"github.com/yury-nazarov/shorturl/internal/logger"
-	"log"
-	"net/http"
 )
 
 func main() {
