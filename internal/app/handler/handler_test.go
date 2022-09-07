@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	"fmt"
+	"github.com/yury-nazarov/shorturl/internal/logger"
 	"io"
 	"io/ioutil"
 	"log"
@@ -14,42 +15,37 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	appMiddleware "github.com/yury-nazarov/shorturl/internal/app/middleware"
 	"github.com/yury-nazarov/shorturl/internal/app/service"
 	"github.com/yury-nazarov/shorturl/internal/app/storage"
+	"github.com/yury-nazarov/shorturl/internal/config"
 )
 
 // NewTestServer - конфигурируем тестовый сервер,
 func NewTestServer(dbName string, PGConnStr string) *httptest.Server {
+	// Инициируем логгер
+	logger := logger.New()
+
 	// В дальнейшем на этот адрес/url будут завязаны тест кейсы
-	ServiceAddress := "127.0.0.1:8080"
+	cfg := config.Config{}
+	cfg.ServerAddress = "127.0.0.1:8080"
+	cfg.BaseURL = "http://127.0.0.1:8080"
+	cfg.FileStoragePath = dbName
+	cfg.DatabaseDSN = PGConnStr
+	cfg.ShortURLLength = 5
 
-	r := chi.NewRouter()
-
-	lc := service.NewLinkCompressor(5, fmt.Sprintf("http://%s", ServiceAddress))
+	linkCompressor := service.NewLinkCompressor(cfg.ShortURLLength, cfg.BaseURL, logger)
 
 	// Инициируем БД
-	db := storage.New(storage.DBConfig{FileName: dbName, PGConnStr: PGConnStr})
-	c := NewController(db, lc)
+	db := storage.New(storage.DBConfig{FileName: cfg.FileStoragePath, PGConnStr: cfg.DatabaseDSN}, logger)
+	controller := NewController(db, linkCompressor, logger)
 
-	// Собственные middleware для компрессии/декомпрессии
-	r.Use(appMiddleware.HTTPResponseCompressor)
-	r.Use(appMiddleware.HTTPRequestDecompressor)
-	// Передае в middleware соеденение с БД
-	r.Use(appMiddleware.HTTPCookieAuth(db))
-
-	// Handler routing
-	r.HandleFunc("/", c.DefaultHandler)
-	r.Post("/api/shorten", c.AddJSONURLHandler)
-	r.Get("/{urlID}", c.GetURLHandler)
-	r.Post("/", c.AddURLHandler)
+	r := NewRouter(controller, db, logger)
 
 	// Настраиваем адрес/порт который будут слушать тестовый сервер
-	listener, err := net.Listen("tcp", ServiceAddress)
+	listener, err := net.Listen("tcp", cfg.ServerAddress)
 	if err != nil {
 		log.Fatal(err)
 	}

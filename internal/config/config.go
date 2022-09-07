@@ -9,15 +9,16 @@ import (
 
 //  Получаем конфигурацию из переменных или флагов
 
-type config struct {
+type Config struct {
 	ServerAddress    string `env:"SERVER_ADDRESS" envDefault:"127.0.0.1:8080"`
 	BaseURL 		 string `env:"BASE_URL" envDefault:"http://127.0.0.1:8080"`
 	FileStoragePath  string `env:"FILE_STORAGE_PATH"`
 	DatabaseDSN      string `env:"DATABASE_DSN"`
+	ShortURLLength 	 int
 }
 
-func NewConfig(logger *logrus.Logger) (config, error) {
-	cfg := config{}
+func NewConfig(logger *logrus.Logger) (Config, error) {
+	cfg := Config{}
 	flag.StringVar(&cfg.ServerAddress, "a", cfg.ServerAddress, "set server address, by example: 127.0.0.1:8080")
 	flag.StringVar(&cfg.BaseURL, "b", cfg.BaseURL, "set base URL, by example: http://127.0.0.1:8080")
 	flag.StringVar(&cfg.FileStoragePath, "f", cfg.FileStoragePath, "set file path for storage, by example: db.txt")
