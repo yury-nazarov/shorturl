@@ -29,7 +29,9 @@ func NewLinkCompressor(cfg config.Config, logger *logrus.Logger) LinkCompressor 
 	return lc
 }
 
+
 // SortURL - собирает сокращенный URL
+// 			 TODO: Опечатка. И переименовать в отражающее суть: MakeShortURL
 func (l *LinkCompressor) SortURL(originalLink string) string {
 	path := l.shortPath(originalLink)
 	url := fmt.Sprintf("%s/%s", l.ServiceName, path[:l.urlLength])

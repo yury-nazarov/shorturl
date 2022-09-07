@@ -3,19 +3,15 @@ package filedb
 import (
 	"context"
 	"fmt"
-	"github.com/yury-nazarov/shorturl/internal/app/repository/models"
 	"io"
 	"log"
+
+	"github.com/yury-nazarov/shorturl/internal/app/repository/models"
 )
 
 // Хранение данных в файле
 
-// record - описывает каждую запись в БД как json
-type record struct {
-	ShortURL  	string `json:"short_url"`
-	OriginURL 	string `json:"origin_url"`
-	Token 		string `json:"token"`
-}
+
 
 type fileDB struct {
 	name string
@@ -34,7 +30,7 @@ func NewFileDB(fileName string) *fileDB {
 // Add - добавляем запись в БД
 func (f *fileDB) Add(ctx context.Context, shortURL string, originURL string, token string) error {
 	// Создаем новую запись как JSON объект
-	data := &record{
+	data := &models.Record{
 		ShortURL:  shortURL,
 		OriginURL: originURL,
 		Token: token,

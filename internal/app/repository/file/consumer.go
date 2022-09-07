@@ -2,6 +2,7 @@ package filedb
 
 import (
 	"encoding/json"
+	"github.com/yury-nazarov/shorturl/internal/app/repository/models"
 	"os"
 )
 
@@ -23,8 +24,8 @@ func newConsumer(fileName string) (*consumer, error) {
 	}, nil
 }
 
-func (c *consumer) read() (*record, error) {
-	record := &record{}
+func (c *consumer) read() (*models.Record, error) {
+	record := &models.Record{}
 	if err := c.decoder.Decode(&record); err != nil {
 		return nil, err
 	}

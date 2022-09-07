@@ -8,27 +8,17 @@ import (
 	"sync"
 
 	"github.com/yury-nazarov/shorturl/internal/app/repository"
+	"github.com/yury-nazarov/shorturl/internal/app/repository/models"
 	"github.com/yury-nazarov/shorturl/internal/app/service"
 
 	"github.com/sirupsen/logrus"
 )
 
+// Controller структура для создания контроллера
 type Controller struct {
 	db 		repository.Repository
 	lc 		service.LinkCompressor
 	logger 	*logrus.Logger
-}
-
-type URL struct {
-	Request  string `json:"url,omitempty"`    // Не учитываем поле при Marshal
-	Response string `json:"result,omitempty"` // Не учитываем поле при Unmarshal
-}
-
-
-type URLBatch struct {
-	CorrelationID 	string `json:"correlation_id"`
-	OriginalURL 	string `json:"original_url,omitempty"`
-	ShortURL 		string `json:"short_url,omitempty"`
 }
 
 // NewController - вернет объект для доступа к хендлерам
@@ -42,6 +32,7 @@ func NewController(db repository.Repository, lc service.LinkCompressor, logger *
 	return c
 }
 
+// AddJSONURLHandler - принимает URL в формате JSON
 func (c *Controller) AddJSONURLHandler(w http.ResponseWriter, r *http.Request) {
 	// Читаем присланые данные
 	bodyData, err := io.ReadAll(r.Body)
@@ -56,7 +47,7 @@ func (c *Controller) AddJSONURLHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Unmarshal JSON
-	var url URL
+	var url models.URL
 	if err = json.Unmarshal(bodyData, &url); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 	}
@@ -77,7 +68,7 @@ func (c *Controller) AddJSONURLHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Сериализуем контент
-	jsonShortURL, err := json.Marshal(URL{Response: shortURL})
+	jsonShortURL, err := json.Marshal(models.URL{Response: shortURL})
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
@@ -97,6 +88,7 @@ func (c *Controller) AddJSONURLHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// AddURLHandler - принимает URL в текстовом формате
 func (c *Controller) AddURLHandler(w http.ResponseWriter, r *http.Request) {
 	// Читаем присланые данные
 	bodyData, err := io.ReadAll(r.Body)
@@ -175,7 +167,7 @@ func (c *Controller) GetURLHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusTemporaryRedirect)
 }
 
-
+// GetUserURLs - вернет список всех пользовательских URL
 func (c *Controller) GetUserURLs(w http.ResponseWriter, r *http.Request) {
 	// Получаем токен из кук
 	token, err := r.Cookie("session_token")
@@ -259,19 +251,17 @@ func (c *Controller) DeleteURLs(w http.ResponseWriter, r *http.Request) {
 	wg.Wait()
 	close(urlsID)
 
-
 	// Помечаем удаленными пачку записей
 	if err = c.db.URLBulkDelete(r.Context(), urlsID); err != nil {
 		c.logger.Printf("%s", err)
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 	c.logger.Println("DEBUG: Stop URLBulkDelete:")
-
-
 	w.WriteHeader(http.StatusAccepted)
 }
 
 
+// DefaultHandler - TODO
 func (c *Controller) DefaultHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusBadRequest)
 }
@@ -285,6 +275,7 @@ func (c *Controller) PingDB(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+// AddJSONURLBatchHandler - добавляет пачку URL пришедших в формате JSON
 func (c *Controller) AddJSONURLBatchHandler(w http.ResponseWriter, r *http.Request) {
 	// Читаем присланые данные
 	bodyData, err := io.ReadAll(r.Body)
@@ -299,13 +290,13 @@ func (c *Controller) AddJSONURLBatchHandler(w http.ResponseWriter, r *http.Reque
 	}
 
 	// Unmarshal JSON
-	var urls []URLBatch
+	var urls []models.URLBatch
 	if err = json.Unmarshal(bodyData, &urls); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 	}
 
 	// Сокращаем url и добавляем в БД, подготавливаем ответ
-	var response []URLBatch
+	var response []models.URLBatch
 	for _, item := range urls {
 		shortURL := c.lc.SortURL(item.OriginalURL)
 		token, err := r.Cookie("session_token")
@@ -317,7 +308,7 @@ func (c *Controller) AddJSONURLBatchHandler(w http.ResponseWriter, r *http.Reque
 		}
 
 		// Сразу подготавливаем слайс для ответа пользователю
-		response = append(response, URLBatch{
+		response = append(response, models.URLBatch{
 			CorrelationID: item.CorrelationID,
 			ShortURL: shortURL,
 		})

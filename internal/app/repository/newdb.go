@@ -14,6 +14,8 @@ import (
 
 // Repository - общее представление интерфейса для работы с БД
 type Repository interface {
+	// TODO: В Add и Get можно передавать объект:
+
 	Add(ctx context.Context, shortURL string, longURL string, token string) error
 	Get(ctx context.Context, shortURL string, token string) (string, error)
 	GetToken(ctx context.Context, token string) (bool, error)
