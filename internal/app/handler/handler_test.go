@@ -18,8 +18,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/yury-nazarov/shorturl/internal/app/repository"
 	"github.com/yury-nazarov/shorturl/internal/app/service"
-	"github.com/yury-nazarov/shorturl/internal/app/storage"
 	"github.com/yury-nazarov/shorturl/internal/config"
 )
 
@@ -39,7 +39,7 @@ func NewTestServer(dbName string, PGConnStr string) *httptest.Server {
 	linkCompressor := service.NewLinkCompressor(cfg, logger)
 
 	// Инициируем БД
-	db := storage.New(cfg, logger)
+	db := repository.New(cfg, logger)
 	controller := NewController(db, linkCompressor, logger)
 
 	r := NewRouter(controller, db, logger)

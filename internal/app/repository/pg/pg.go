@@ -4,8 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/yury-nazarov/shorturl/internal/app/repository/models"
 	"log"
+
+	"github.com/yury-nazarov/shorturl/internal/app/repository/models"
 
 	_ "github.com/jackc/pgx/v4/stdlib"
 )
