@@ -110,16 +110,13 @@ func (p *pg) GetUserURL(ctx context.Context, token string) ([]models.RecordURL, 
 
 	// Достаем по id конкретные URL: origin, short.
 	for rows.Next() {
-		log.Println("DEBUG 5:")
 		var url models.RecordURL
 		rows.Scan(&url.OriginURL, &url.ShortURL)
-		log.Println("-", url.ShortURL, url.OriginURL)
 		urls = append(urls, url)
 	}
 	if err = rows.Err(); err != nil {
 		log.Printf("sql | get users url err: %s\n", err)
 	}
-	log.Println("DEBUG 6:", urls)
 	return urls, nil
 }
 
