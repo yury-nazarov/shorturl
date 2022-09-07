@@ -22,7 +22,7 @@ func main() {
 	// Инициируем БД
 	db := storage.New(storage.DBConfig{FileName: cfg.FileStoragePath, PGConnStr: cfg.DatabaseDSN}, logger)
 	// Создаем объект для доступа к методам компрессии URL
-	linkCompressor := service.NewLinkCompressor(5, cfg.BaseURL, logger)
+	linkCompressor := service.NewLinkCompressor(cfg, logger)
 	// Инициируем объект для доступа к хендлерам
 	controller := handler.NewController(db, linkCompressor, logger)
 	// Инициируем роутер

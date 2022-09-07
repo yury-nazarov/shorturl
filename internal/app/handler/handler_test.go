@@ -34,9 +34,9 @@ func NewTestServer(dbName string, PGConnStr string) *httptest.Server {
 	cfg.BaseURL = "http://127.0.0.1:8080"
 	cfg.FileStoragePath = dbName
 	cfg.DatabaseDSN = PGConnStr
-	cfg.ShortURLLength = 5
+	cfg.URLLength = 5
 
-	linkCompressor := service.NewLinkCompressor(cfg.ShortURLLength, cfg.BaseURL, logger)
+	linkCompressor := service.NewLinkCompressor(cfg, logger)
 
 	// Инициируем БД
 	db := storage.New(storage.DBConfig{FileName: cfg.FileStoragePath, PGConnStr: cfg.DatabaseDSN}, logger)

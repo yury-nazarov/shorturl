@@ -14,7 +14,7 @@ type Config struct {
 	BaseURL 		 string `env:"BASE_URL" envDefault:"http://127.0.0.1:8080"`
 	FileStoragePath  string `env:"FILE_STORAGE_PATH"`
 	DatabaseDSN      string `env:"DATABASE_DSN"`
-	ShortURLLength 	 int 	`env:"URLLength" envDefault:5`
+	URLLength 	 	 int 	`env:"URLLength" envDefault:"5"`
 }
 
 func NewConfig(logger *logrus.Logger) (Config, error) {
