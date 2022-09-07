@@ -3,11 +3,11 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/yury-nazarov/shorturl/internal/app/repository/db"
 	"io"
 	"net/http"
 	"sync"
 
-	"github.com/yury-nazarov/shorturl/internal/app/repository"
 	"github.com/yury-nazarov/shorturl/internal/app/repository/models"
 	"github.com/yury-nazarov/shorturl/internal/app/service"
 
@@ -16,13 +16,13 @@ import (
 
 // Controller структура для создания контроллера
 type Controller struct {
-	db 		repository.Repository
-	lc 		service.LinkCompressor
+	db db.Repository
+	lc service.LinkCompressor
 	logger 	*logrus.Logger
 }
 
 // NewController - вернет объект для доступа к хендлерам
-func NewController(db repository.Repository, lc service.LinkCompressor, logger *logrus.Logger) *Controller {
+func NewController(db db.Repository, lc service.LinkCompressor, logger *logrus.Logger) *Controller {
 	c := &Controller{
 		db: db,
 		lc: lc,

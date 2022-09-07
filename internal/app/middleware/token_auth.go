@@ -5,14 +5,13 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
+	"github.com/yury-nazarov/shorturl/internal/app/repository/db"
 	"log"
 	"net/http"
-
-	"github.com/yury-nazarov/shorturl/internal/app/repository"
 )
 
 // HTTPCookieAuth - middleware - устанавливает подписаный токен для клиента, ели его нет.
-func HTTPCookieAuth(db repository.Repository) func(next http.Handler) http.Handler {
+func HTTPCookieAuth(db db.Repository) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			if r.Method != http.MethodPost {

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	"fmt"
+	"github.com/yury-nazarov/shorturl/internal/app/repository/db"
 	"github.com/yury-nazarov/shorturl/internal/logger"
 	"io"
 	"io/ioutil"
@@ -18,7 +19,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/yury-nazarov/shorturl/internal/app/repository"
 	"github.com/yury-nazarov/shorturl/internal/app/service"
 	"github.com/yury-nazarov/shorturl/internal/config"
 )
@@ -39,7 +39,7 @@ func NewTestServer(dbName string, PGConnStr string) *httptest.Server {
 	linkCompressor := service.NewLinkCompressor(cfg, logger)
 
 	// Инициируем БД
-	db := repository.New(cfg, logger)
+	db := db.New(cfg, logger)
 	controller := NewController(db, linkCompressor, logger)
 
 	r := NewRouter(controller, db, logger)

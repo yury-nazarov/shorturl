@@ -2,16 +2,15 @@ package handler
 
 import (
 	"github.com/sirupsen/logrus"
+	"github.com/yury-nazarov/shorturl/internal/app/repository/db"
 	"net/http"
-
-	appMiddleware "github.com/yury-nazarov/shorturl/internal/app/middleware"
-	"github.com/yury-nazarov/shorturl/internal/app/repository"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	appMiddleware "github.com/yury-nazarov/shorturl/internal/app/middleware"
 )
 
-func NewRouter(c *Controller, db repository.Repository, logger *logrus.Logger) http.Handler {
+func NewRouter(c *Controller, db db.Repository, logger *logrus.Logger) http.Handler {
 	// Инициируем Router
 	r := chi.NewRouter()
 

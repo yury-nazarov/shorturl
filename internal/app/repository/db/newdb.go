@@ -1,12 +1,12 @@
-package repository
+package db
 
 import (
 	"context"
+	"github.com/yury-nazarov/shorturl/internal/app/repository/db/file"
+	"github.com/yury-nazarov/shorturl/internal/app/repository/db/inmemory"
+	"github.com/yury-nazarov/shorturl/internal/app/repository/db/pg"
 
-	"github.com/yury-nazarov/shorturl/internal/app/repository/file"
-	"github.com/yury-nazarov/shorturl/internal/app/repository/inmemory"
 	"github.com/yury-nazarov/shorturl/internal/app/repository/models"
-	"github.com/yury-nazarov/shorturl/internal/app/repository/pg"
 	"github.com/yury-nazarov/shorturl/internal/config"
 
 	"github.com/sirupsen/logrus"
