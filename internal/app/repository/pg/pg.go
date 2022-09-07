@@ -165,8 +165,8 @@ func (p *pg) URLBulkDelete(ctx context.Context,  urlsID chan int) error {
 
 // GetToken - Проверяет наличие токена в БД
 func (p *pg) GetToken(ctx context.Context, token string) (bool, error) {
-	owner := models.Owner{}
-	if err := p.db.QueryRowContext(ctx, `SELECT id FROM url_service WHERE owner=$1 LIMIT 1;`, token).Scan(&owner.ID); err != nil {
+	var owner int
+	if err := p.db.QueryRowContext(ctx, `SELECT id FROM url_service WHERE owner=$1 LIMIT 1;`, token).Scan(&owner); err != nil {
 		return false, fmt.Errorf("sql | token not found: %w", err)
 	}
 	return true, nil

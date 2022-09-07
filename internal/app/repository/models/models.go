@@ -1,5 +1,6 @@
 package models
 
+// Структуры для работы с БД
 
 // Record - описывает каждую запись в БД как json
 //			Используем:
@@ -12,23 +13,19 @@ type Record struct {
 	Token 		string `json:"token"`
 }
 
+// структуры для handler помогающие обрабатывать и сериализовать коммуникации с клиентом
 
-// Owner Представление таблицы shorten_url.owner
-// 		 используем
-//				 pg.GetToken - парсинг отваета SQL запроса
-type Owner struct {
-	ID    int
-	Token string
-}
-
-// структуры из handler
-
+// URL
+//		десериализуем данные пришедшие по HTTP
+// 		Так же с помощью этой структуры сериализуем ответ клиенту
 type URL struct {
 	Request  string `json:"url,omitempty"`    // Не учитываем поле при Marshal
 	Response string `json:"result,omitempty"` // Не учитываем поле при Unmarshal
 }
 
-
+// URLBatch
+// 		 десериализуем данные пришедшие по HTTP
+// 		 Так же с помощью этой структуры сериализуем ответ клиенту
 type URLBatch struct {
 	CorrelationID 	string `json:"correlation_id"`
 	OriginalURL 	string `json:"original_url,omitempty"`
