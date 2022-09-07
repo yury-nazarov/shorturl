@@ -4,11 +4,13 @@ package models
 
 // Record - описывает каждую запись в БД как json
 //			Используем:
-//				filedb
-// 				pg.GetUserURL - парсинг отваета SQL запроса
+//				repository.file 		- read / write to file
+//				repository.inmemory  	- read / write to file
+// 				repository.pg.GetUserURL - парсинг отваета SQL запроса
 type Record struct {
 	ShortURL  	string `json:"short_url"`
-	OriginURL 	string `json:"origin_url"`
+	//OriginURL 	string `json:"origin_url"`
+	OriginURL 	string `json:"original_url"`
 	Token 		string `json:"token"`
 }
 
