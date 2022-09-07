@@ -23,3 +23,12 @@ type Owner struct {
 	ID    int
 	Token string
 }
+
+// URLService структура представляет таблицу shorten_url в БД
+//type URLService struct {
+//	ID 		int
+//	Origin 	string
+//	Short  	string `json:"short_url"`
+//	Owner 	string `json:"original_url"`
+//	Delete 	bool
+//}
