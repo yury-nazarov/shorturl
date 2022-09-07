@@ -39,7 +39,7 @@ func NewTestServer(dbName string, PGConnStr string) *httptest.Server {
 	linkCompressor := service.NewLinkCompressor(cfg, logger)
 
 	// Инициируем БД
-	db := storage.New(storage.DBConfig{FileName: cfg.FileStoragePath, PGConnStr: cfg.DatabaseDSN}, logger)
+	db := storage.New(cfg, logger)
 	controller := NewController(db, linkCompressor, logger)
 
 	r := NewRouter(controller, db, logger)

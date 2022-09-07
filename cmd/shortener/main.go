@@ -20,7 +20,7 @@ func main() {
 		logger.Fatal(err)
 	}
 	// Инициируем БД
-	db := storage.New(storage.DBConfig{FileName: cfg.FileStoragePath, PGConnStr: cfg.DatabaseDSN}, logger)
+	db := storage.New(cfg, logger)
 	// Создаем объект для доступа к методам компрессии URL
 	linkCompressor := service.NewLinkCompressor(cfg, logger)
 	// Инициируем объект для доступа к хендлерам
