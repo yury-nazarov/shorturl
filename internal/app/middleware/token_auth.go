@@ -8,7 +8,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/yury-nazarov/shorturl/internal/app/storage/repository"
+	"github.com/yury-nazarov/shorturl/internal/app/repository"
 )
 
 // HTTPCookieAuth - middleware - устанавливает подписаный токен для клиента, ели его нет.

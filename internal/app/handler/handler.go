@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/yury-nazarov/shorturl/internal/app/repository"
 	"github.com/yury-nazarov/shorturl/internal/app/service"
-	"github.com/yury-nazarov/shorturl/internal/app/storage/repository"
 
 	"github.com/sirupsen/logrus"
 )

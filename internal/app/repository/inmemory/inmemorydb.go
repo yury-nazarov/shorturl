@@ -3,9 +3,8 @@ package inmemorydb
 import (
 	"context"
 	"fmt"
+	"github.com/yury-nazarov/shorturl/internal/app/repository/models"
 	"strings"
-
-	"github.com/yury-nazarov/shorturl/internal/app/storage/repository"
 )
 
 // InMemoryDB - БД для URL
@@ -54,11 +53,11 @@ func (u *inMemoryDB) GetToken(ctx context.Context, token string) (bool, error) {
 
 
 // GetUserURL - вернет все url для пользователя
-func (u *inMemoryDB) GetUserURL(ctx context.Context, token string) ([]repository.RecordURL, error) {
-	var result []repository.RecordURL
+func (u *inMemoryDB) GetUserURL(ctx context.Context, token string) ([]models.RecordURL, error) {
+	var result []models.RecordURL
 	for k, urlInfo := range u.db {
 		if strings.Contains(token, urlInfo.token) {
-			result = append(result, repository.RecordURL{ShortURL: k, OriginURL: urlInfo.longURL})
+			result = append(result, models.RecordURL{ShortURL: k, OriginURL: urlInfo.longURL})
 		}
 	}
 	return result, nil

@@ -3,10 +3,9 @@ package filedb
 import (
 	"context"
 	"fmt"
+	"github.com/yury-nazarov/shorturl/internal/app/repository/models"
 	"io"
 	"log"
-
-	"github.com/yury-nazarov/shorturl/internal/app/storage/repository"
 )
 
 // Хранение данных в файле
@@ -107,15 +106,15 @@ func (f *fileDB) GetToken(ctx context.Context, token string) (bool, error) {
 
 
 // GetUserURL - вернет слайс из структур со всем URL пользователя
-func (f *fileDB) GetUserURL(ctx context.Context, token string) ([]repository.RecordURL, error) {
+func (f *fileDB) GetUserURL(ctx context.Context, token string) ([]models.RecordURL, error) {
 	// Открываем файл на чтение
 	c, err := newConsumer(f.name)
 	if err != nil {
-		return []repository.RecordURL{}, err
+		return []models.RecordURL{}, err
 	}
 	defer c.close()
 	// В цикле читаем каждую запись
-	var result []repository.RecordURL
+	var result []models.RecordURL
 	for {
 		r, err := c.read()
 
@@ -124,7 +123,7 @@ func (f *fileDB) GetUserURL(ctx context.Context, token string) ([]repository.Rec
 		}
 
 		if r.Token == token {
-			result = append(result, repository.RecordURL{ShortURL: r.ShortURL, OriginURL: r.OriginURL})
+			result = append(result, models.RecordURL{ShortURL: r.ShortURL, OriginURL: r.OriginURL})
 		}
 	}
 	return result, nil

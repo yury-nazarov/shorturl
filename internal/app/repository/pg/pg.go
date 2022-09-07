@@ -4,16 +4,14 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/yury-nazarov/shorturl/internal/app/repository/models"
 	"log"
 
 	_ "github.com/jackc/pgx/v4/stdlib"
-
-	"github.com/yury-nazarov/shorturl/internal/app/storage/repository"
 )
 
 type pg struct {
 	db *sql.DB
-
 }
 
 // New - врнет ссылку на соединение с PG
@@ -95,9 +93,9 @@ func (p *pg) Get(ctx context.Context, shortURL string, token string) (string, er
 }
 
 // GetUserURL - Возвращает все url для конкретного token
-func (p *pg) GetUserURL(ctx context.Context, token string) ([]repository.RecordURL, error) {
+func (p *pg) GetUserURL(ctx context.Context, token string) ([]models.RecordURL, error) {
 	// Слайс который будем возвращать как результат работы метода
-	var urls []repository.RecordURL
+	var urls []models.RecordURL
 
 	// Получаем все url для конкретного owner
 	rows, err := p.db.QueryContext(ctx, `SELECT origin, short FROM shorten_url WHERE owner=$1`, token)
@@ -112,7 +110,7 @@ func (p *pg) GetUserURL(ctx context.Context, token string) ([]repository.RecordU
 	// Достаем по id конкретные URL: origin, short.
 	for rows.Next() {
 		log.Println("DEBUG 5:")
-		var url repository.RecordURL
+		var url models.RecordURL
 		rows.Scan(&url.OriginURL, &url.ShortURL)
 		log.Println("-", url.ShortURL, url.OriginURL)
 		urls = append(urls, url)
@@ -171,7 +169,7 @@ func (p *pg) URLBulkDelete(ctx context.Context,  urlsID chan int) error {
 
 // GetToken - Проверяет наличие токена в БД
 func (p *pg) GetToken(ctx context.Context, token string) (bool, error) {
-	owner := repository.Owner{}
+	owner := models.Owner{}
 	if err := p.db.QueryRowContext(ctx, `SELECT id FROM shorten_url WHERE owner=$1 LIMIT 1;`, token).Scan(&owner.ID); err != nil {
 		return false, fmt.Errorf("sql | token not found: %w", err)
 	}

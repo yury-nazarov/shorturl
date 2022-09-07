@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	appMiddleware "github.com/yury-nazarov/shorturl/internal/app/middleware"
-	"github.com/yury-nazarov/shorturl/internal/app/storage/repository"
+	"github.com/yury-nazarov/shorturl/internal/app/repository"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
