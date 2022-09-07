@@ -53,11 +53,11 @@ func (u *inMemoryDB) GetToken(ctx context.Context, token string) (bool, error) {
 
 
 // GetUserURL - вернет все url для пользователя
-func (u *inMemoryDB) GetUserURL(ctx context.Context, token string) ([]models.RecordURL, error) {
-	var result []models.RecordURL
+func (u *inMemoryDB) GetUserURL(ctx context.Context, token string) ([]models.Record, error) {
+	var result []models.Record
 	for k, urlInfo := range u.db {
 		if strings.Contains(token, urlInfo.token) {
-			result = append(result, models.RecordURL{ShortURL: k, OriginURL: urlInfo.longURL})
+			result = append(result, models.Record{ShortURL: k, OriginURL: urlInfo.longURL})
 		}
 	}
 	return result, nil

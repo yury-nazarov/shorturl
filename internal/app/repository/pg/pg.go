@@ -94,9 +94,9 @@ func (p *pg) Get(ctx context.Context, shortURL string, token string) (string, er
 }
 
 // GetUserURL - Возвращает все url для конкретного token
-func (p *pg) GetUserURL(ctx context.Context, token string) ([]models.RecordURL, error) {
+func (p *pg) GetUserURL(ctx context.Context, token string) ([]models.Record, error) {
 	// Слайс который будем возвращать как результат работы метода
-	var urls []models.RecordURL
+	var urls []models.Record
 
 	// Получаем все url для конкретного owner
 	rows, err := p.db.QueryContext(ctx, `SELECT origin, short FROM url_service WHERE owner=$1`, token)
@@ -106,11 +106,9 @@ func (p *pg) GetUserURL(ctx context.Context, token string) ([]models.RecordURL, 
 	}
 	defer rows.Close()
 
-	log.Println("DEBUG 4:",)
-
 	// Достаем по id конкретные URL: origin, short.
 	for rows.Next() {
-		var url models.RecordURL
+		var url models.Record
 		rows.Scan(&url.OriginURL, &url.ShortURL)
 		urls = append(urls, url)
 	}

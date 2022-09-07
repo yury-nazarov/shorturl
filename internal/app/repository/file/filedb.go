@@ -102,15 +102,15 @@ func (f *fileDB) GetToken(ctx context.Context, token string) (bool, error) {
 
 
 // GetUserURL - вернет слайс из структур со всем URL пользователя
-func (f *fileDB) GetUserURL(ctx context.Context, token string) ([]models.RecordURL, error) {
+func (f *fileDB) GetUserURL(ctx context.Context, token string) ([]models.Record, error) {
 	// Открываем файл на чтение
 	c, err := newConsumer(f.name)
 	if err != nil {
-		return []models.RecordURL{}, err
+		return []models.Record{}, err
 	}
 	defer c.close()
 	// В цикле читаем каждую запись
-	var result []models.RecordURL
+	var result []models.Record
 	for {
 		r, err := c.read()
 
@@ -119,7 +119,7 @@ func (f *fileDB) GetUserURL(ctx context.Context, token string) ([]models.RecordU
 		}
 
 		if r.Token == token {
-			result = append(result, models.RecordURL{ShortURL: r.ShortURL, OriginURL: r.OriginURL})
+			result = append(result, models.Record{ShortURL: r.ShortURL, OriginURL: r.OriginURL})
 		}
 	}
 	return result, nil
