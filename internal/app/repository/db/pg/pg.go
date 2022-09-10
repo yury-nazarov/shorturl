@@ -46,14 +46,6 @@ func (p *pg) SchemeInit() error {
 	return nil
 }
 
-// URL - представление объекта URL
-type URL struct {
-	id int
-	shortURL string
-	origin string
-	delete bool // default false
-}
-
 // Ping - Проверка соединения с БД
 func (p *pg) Ping() bool {
 	if err := p.db.Ping(); err != nil {
@@ -174,14 +166,13 @@ func (p *pg) GetToken(ctx context.Context, token string) (bool, error) {
 
 // OriginURLExists - проверяет наличие URL в БД
 func (p *pg) OriginURLExists(ctx context.Context, originURL string) (bool, error) {
-	url := URL{}
-	err := p.db.QueryRowContext(ctx, `SELECT origin FROM url_service WHERE origin=$1 LIMIT 1`, originURL).Scan(&url.origin)
+	var url string
+	err := p.db.QueryRowContext(ctx, `SELECT origin FROM url_service WHERE origin=$1 LIMIT 1`, originURL).Scan(&url)
 	if err != nil {
 		return false, err
 	}
-	if len(url.origin) == 0 {
+	if len(url) == 0 {
 		return false, nil
 	}
-	log.Println("!!!!!!!!!!")
 	return true, nil
 }

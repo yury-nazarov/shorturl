@@ -36,7 +36,7 @@ type URLBatch struct {
 // Вариант использовать пару общих структур для передаи данных между слоями
 // 		   и сериализации/десериализации коммуникаций с пользователем.
 
-// URLService структура представляет таблицу shorten_url в БД
+////URLService структура представляет таблицу shorten_url в БД
 //type URLService struct {
 //	ID 		int
 //	Origin 	string
