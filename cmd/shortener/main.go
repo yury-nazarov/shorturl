@@ -20,7 +20,10 @@ func main() {
 		logger.Fatal(err)
 	}
 	// Инициируем БД
-	db := db.New(cfg, logger)
+	db, err := db.New(cfg, logger)
+	if err != nil {
+		logger.Fatal(err)
+	}
 	// Создаем объект для доступа к методам компрессии URL
 	linkCompressor := service.NewLinkCompressor(cfg, logger)
 	// Инициируем объект для доступа к хендлерам

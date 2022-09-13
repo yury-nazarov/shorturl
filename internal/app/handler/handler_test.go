@@ -39,7 +39,10 @@ func NewTestServer(dbName string, PGConnStr string) *httptest.Server {
 	linkCompressor := service.NewLinkCompressor(cfg, logger)
 
 	// Инициируем БД
-	db := db.New(cfg, logger)
+	db, err := db.New(cfg, logger)
+	if err != nil {
+		logger.Fatal(err)
+	}
 	controller := NewController(db, linkCompressor, logger)
 
 	r := NewRouter(controller, db, logger)
