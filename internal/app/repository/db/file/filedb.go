@@ -6,17 +6,12 @@ import (
 	"io"
 	"log"
 
-	"github.com/yury-nazarov/shorturl/internal/app/storage/repository"
+	"github.com/yury-nazarov/shorturl/internal/app/repository/models"
 )
 
 // Хранение данных в файле
 
-// record - описывает каждую запись в БД как json
-type record struct {
-	ShortURL  	string `json:"short_url"`
-	OriginURL 	string `json:"origin_url"`
-	Token 		string `json:"token"`
-}
+
 
 type fileDB struct {
 	name string
@@ -35,7 +30,7 @@ func NewFileDB(fileName string) *fileDB {
 // Add - добавляем запись в БД
 func (f *fileDB) Add(ctx context.Context, shortURL string, originURL string, token string) error {
 	// Создаем новую запись как JSON объект
-	data := &record{
+	data := &models.Record{
 		ShortURL:  shortURL,
 		OriginURL: originURL,
 		Token: token,
@@ -107,15 +102,15 @@ func (f *fileDB) GetToken(ctx context.Context, token string) (bool, error) {
 
 
 // GetUserURL - вернет слайс из структур со всем URL пользователя
-func (f *fileDB) GetUserURL(ctx context.Context, token string) ([]repository.RecordURL, error) {
+func (f *fileDB) GetUserURL(ctx context.Context, token string) ([]models.Record, error) {
 	// Открываем файл на чтение
 	c, err := newConsumer(f.name)
 	if err != nil {
-		return []repository.RecordURL{}, err
+		return []models.Record{}, err
 	}
 	defer c.close()
 	// В цикле читаем каждую запись
-	var result []repository.RecordURL
+	var result []models.Record
 	for {
 		r, err := c.read()
 
@@ -124,7 +119,7 @@ func (f *fileDB) GetUserURL(ctx context.Context, token string) ([]repository.Rec
 		}
 
 		if r.Token == token {
-			result = append(result, repository.RecordURL{ShortURL: r.ShortURL, OriginURL: r.OriginURL})
+			result = append(result, models.Record{ShortURL: r.ShortURL, OriginURL: r.OriginURL})
 		}
 	}
 	return result, nil

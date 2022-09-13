@@ -5,24 +5,33 @@ import (
 	"log"
 	"math/big"
 
+	"github.com/yury-nazarov/shorturl/internal/config"
+
 	"github.com/itchyny/base58-go"
+	"github.com/sirupsen/logrus"
 )
 
 type LinkCompressor struct {
 	urlLength   int
 	ServiceName string
+	logger 		*logrus.Logger
 }
 
 // NewLinkCompressor - объект содержит в себе все необходимое для подготови короткого URL
-func NewLinkCompressor(urlLength int, urlAnswer string) LinkCompressor {
+//func NewLinkCompressor(urlLength int, urlAnswer string, logger *logrus.Logger) LinkCompressor {
+func NewLinkCompressor(cfg config.Config, logger *logrus.Logger) LinkCompressor {
 	lc := LinkCompressor{
-		urlLength:   urlLength,
-		ServiceName: urlAnswer,
+		urlLength:   cfg.URLLength,
+		ServiceName: cfg.BaseURL,
+		logger: logger,
 	}
+	logger.Info("the link compressor success init")
 	return lc
 }
 
+
 // SortURL - собирает сокращенный URL
+// 			 TODO: Опечатка. И переименовать в отражающее суть: MakeShortURL
 func (l *LinkCompressor) SortURL(originalLink string) string {
 	path := l.shortPath(originalLink)
 	url := fmt.Sprintf("%s/%s", l.ServiceName, path[:l.urlLength])

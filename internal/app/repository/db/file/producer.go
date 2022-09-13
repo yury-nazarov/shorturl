@@ -2,6 +2,7 @@ package filedb
 
 import (
 	"encoding/json"
+	"github.com/yury-nazarov/shorturl/internal/app/repository/models"
 	"os"
 )
 
@@ -23,7 +24,7 @@ func newProducer(fileName string) (*producer, error) {
 	}, nil
 }
 
-func (p *producer) write(record *record) error {
+func (p *producer) write(record *models.Record) error {
 	return p.encoder.Encode(&record)
 }
 

@@ -1,0 +1,13 @@
+version: '3.5'
+
+services:
+  postgres:
+    container_name: url_service_db_v1
+    image: postgres:14
+    environment:
+      - POSTGRES_USER=url_service
+      - POSTGRES_PASSWORD=ty7vbR55
+      - POSTGRES_DB=url_service
+    ports:
+      - "5432:5432"
+
