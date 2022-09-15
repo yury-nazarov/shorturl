@@ -11,6 +11,7 @@ import (
 	appMiddleware "github.com/yury-nazarov/shorturl/internal/app/middleware"
 )
 
+// NewRouter создает новый роутер.
 func NewRouter(c *Controller, db db.Repository, logger *logrus.Logger) http.Handler {
 	// Инициируем Router
 	r := chi.NewRouter()

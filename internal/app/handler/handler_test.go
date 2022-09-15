@@ -22,7 +22,7 @@ import (
 	"github.com/yury-nazarov/shorturl/internal/logger"
 )
 
-// NewTestServer - конфигурируем тестовый сервер,
+// NewTestServer - конфигурируем тестовый сервер.
 func NewTestServer(dbName string, PGConnStr string) *httptest.Server {
 	// Инициируем логгер
 	logger := logger.New()
@@ -60,7 +60,7 @@ func NewTestServer(dbName string, PGConnStr string) *httptest.Server {
 	return ts
 }
 
-// Функция HTTP клиент для тестовых запросов
+// Функция HTTP клиент для тестовых запросов.
 func testRequest(t *testing.T, method, path string, body string, headers map[string]string) (*http.Response, string) {
 	// Подготавливаем HTTP Request для тестового сервера
 	req, err := http.NewRequest(method, path, strings.NewReader(body))
@@ -91,7 +91,7 @@ func testRequest(t *testing.T, method, path string, body string, headers map[str
 }
 
 // gzipCompressor - вспомогательная функция,
-//				    позволяет компресить в формате gzip
+//				    позволяет компресить в формате gzip.
 func gzipCompressor(payload string) *bytes.Buffer {
 	b := []byte(payload)
 	var buf bytes.Buffer
@@ -106,7 +106,7 @@ func gzipCompressor(payload string) *bytes.Buffer {
 }
 
 // gzipDecompressor - вспомогательная функция,
-//					  позволяет извлекать данные из формата gzip
+//					  позволяет извлекать данные из формата gzip.
 func gzipDecompressor(body string) string {
 	gz, err := gzip.NewReader(strings.NewReader(body))
 	if err != nil {

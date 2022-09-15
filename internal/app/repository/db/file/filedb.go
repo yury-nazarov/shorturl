@@ -15,9 +15,7 @@ type fileDB struct {
 	name string
 }
 
-// NewFileDB - 	возвращает объект для записи и чтения из файла БД
-//			   	Метод Add() открывает файл, записывает новую строчку
-// 				Метод Get() ищет нужное значение в файле и возвращает его
+// NewFileDB - 	возвращает объект для записи и чтения из файла БД.
 func NewFileDB(fileName string) *fileDB {
 	f := &fileDB{
 		name: fileName,
@@ -25,7 +23,7 @@ func NewFileDB(fileName string) *fileDB {
 	return f
 }
 
-// Add - добавляем запись в БД
+// Add - добавляем запись в БД.
 func (f *fileDB) Add(ctx context.Context, shortURL string, originURL string, token string) error {
 	// Создаем новую запись как JSON объект
 	data := &models.Record{
@@ -51,7 +49,7 @@ func (f *fileDB) Add(ctx context.Context, shortURL string, originURL string, tok
 	return nil
 }
 
-// Get Поиск в БД
+// Get Поиск в БД.
 func (f *fileDB) Get(ctx context.Context, shortURL string, token string) (string, error) {
 	// Открываем файл на чтение
 	c, err := newConsumer(f.name)
@@ -97,7 +95,7 @@ func (f *fileDB) GetToken(ctx context.Context, token string) (bool, error) {
 	}
 }
 
-// GetUserURL - вернет слайс из структур со всем URL пользователя
+// GetUserURL - вернет слайс из структур со всем URL пользователя.
 func (f *fileDB) GetUserURL(ctx context.Context, token string) ([]models.Record, error) {
 	// Открываем файл на чтение
 	c, err := newConsumer(f.name)
@@ -121,29 +119,22 @@ func (f *fileDB) GetUserURL(ctx context.Context, token string) ([]models.Record,
 	return result, nil
 }
 
-// Ping Для обратной совместимости с Postgres
+// Ping Для обратной совместимости с Postgres.
 func (f *fileDB) Ping() bool {
 	return true
 }
 
-// OriginURLExists Для обратной совместимости с Postgres
+// OriginURLExists Для обратной совместимости с Postgres.
 func (f *fileDB) OriginURLExists(ctx context.Context, originURL string) (bool, error) {
 	return false, nil
 }
 
-//// GetOwnerToken Для обратной совместимости с Postgres
-//func (f *fileDB) GetOwnerToken(ctx context.Context, token string) repository.Owner {
-//	owner := repository.Owner{}
-//	return owner
-//}
-
-// GetShortURLByIdentityPath Для обратной совместимости с Postgres
+// GetShortURLByIdentityPath Для обратной совместимости с Postgres.
 func (f *fileDB) GetShortURLByIdentityPath(ctx context.Context, identityPath string, token string) int {
 	return 0
 }
 
-// URLBulkDelete Для обратной совместимости с Postgres
-//func (f *fileDB) URLBulkDelete(ctx context.Context, idList []int) error {
+// URLBulkDelete Для обратной совместимости с Postgres.
 func (f *fileDB) URLBulkDelete(ctx context.Context, urlsID chan int) error {
 	return nil
 }

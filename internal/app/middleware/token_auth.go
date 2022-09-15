@@ -11,7 +11,7 @@ import (
 	"github.com/yury-nazarov/shorturl/internal/app/repository/db"
 )
 
-// HTTPCookieAuth - middleware - устанавливает подписаный токен для клиента, ели его нет.
+// HTTPCookieAuth - middleware - устанавливает подписаный токен для клиента если его нет.
 func HTTPCookieAuth(db db.Repository) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
@@ -52,7 +52,7 @@ func HTTPCookieAuth(db db.Repository) func(next http.Handler) http.Handler {
 	}
 }
 
-// setCookieEncryptToken - Генерит новый токен, шифрует, устанавливает в cookie
+// setCookieEncryptToken - Генерит новый токен, шифрует, устанавливает в cookie.
 func setCookieEncryptToken() *http.Cookie {
 	// Если токена нет - генерим, подписываем, добавляем в куку и передаем HTTP Request дальше
 	uuid := uniqueUserID()
@@ -68,7 +68,7 @@ func setCookieEncryptToken() *http.Cookie {
 	return cookieToken
 }
 
-// uniqueUserID - Генерит рандомный токен для пользователя
+// uniqueUserID - Генерит рандомный токен для пользователя.
 func uniqueUserID() string {
 	uuid := make([]byte, 16)
 	_, err := rand.Read(uuid)

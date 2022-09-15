@@ -6,6 +6,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// New создает объект для доступа к логгеру
 func New() *logrus.Logger {
 	return &logrus.Logger{
 		Formatter: &logrus.JSONFormatter{},

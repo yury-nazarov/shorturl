@@ -6,6 +6,7 @@ import (
 	"testing"
 )
 
+// BenchmarkFileDB бенчмарки на основные методы работы с БД.
 func BenchmarkFileDB(b *testing.B) {
 	db := NewFileDB("TestFDB.txt")
 	token := "123456789qwertyXYZ"

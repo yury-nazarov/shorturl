@@ -15,7 +15,7 @@ type pg struct {
 	db *sql.DB
 }
 
-// New - врнет ссылку на соединение с PG
+// New - врнет объект для работы с PG.
 func New(connStr string) *pg {
 	db, err := sql.Open("pgx", connStr)
 
@@ -46,7 +46,7 @@ func (p *pg) SchemeInit() error {
 	return nil
 }
 
-// Ping - Проверка соединения с БД
+// Ping - Проверка соединения с БД.
 func (p *pg) Ping() bool {
 	if err := p.db.Ping(); err != nil {
 		return false
@@ -65,7 +65,7 @@ func (p *pg) Add(ctx context.Context, shortURL string, longURL string, token str
 	return nil
 }
 
-// Get - Возвращает оригинальный URL или 410 если он помечен удаленных (для всех пользователей)
+// Get - Возвращает оригинальный URL или 410 если он помечен удаленных (для всех пользователей).
 func (p *pg) Get(ctx context.Context, shortURL string, token string) (string, error) {
 	var originURL string
 	var isDelete bool
@@ -85,7 +85,7 @@ func (p *pg) Get(ctx context.Context, shortURL string, token string) (string, er
 	return originURL, nil
 }
 
-// GetUserURL - Возвращает все url для конкретного token
+// GetUserURL - Возвращает все url для конкретного token.
 func (p *pg) GetUserURL(ctx context.Context, token string) ([]models.Record, error) {
 	// Слайс который будем возвращать как результат работы метода
 	var urls []models.Record
@@ -110,7 +110,7 @@ func (p *pg) GetUserURL(ctx context.Context, token string) ([]models.Record, err
 	return urls, nil
 }
 
-// GetShortURLByIdentityPath вернет все записи пользователя по идентификатору короткого URL
+// GetShortURLByIdentityPath вернет все записи пользователя по идентификатору короткого URL.
 func (p *pg) GetShortURLByIdentityPath(ctx context.Context, identityPath string, token string) int {
 	var urlID int
 	err := p.db.QueryRowContext(ctx, `SELECT id FROM url_service 
@@ -124,7 +124,7 @@ func (p *pg) GetShortURLByIdentityPath(ctx context.Context, identityPath string,
 	return urlID
 }
 
-// URLBulkDelete помечает удаленным в таблице url_service. delete=true
+// URLBulkDelete помечает удаленным в таблице url_service. delete=true.
 func (p *pg) URLBulkDelete(ctx context.Context, urlsID chan int) error {
 	// шаг 1 — объявляем транзакцию
 	tx, err := p.db.Begin()
@@ -153,7 +153,7 @@ func (p *pg) URLBulkDelete(ctx context.Context, urlsID chan int) error {
 	return tx.Commit()
 }
 
-// GetToken - Проверяет наличие токена в БД
+// GetToken - Проверяет наличие токена в БД.
 func (p *pg) GetToken(ctx context.Context, token string) (bool, error) {
 	var owner int
 	if err := p.db.QueryRowContext(ctx, `SELECT id FROM url_service WHERE owner=$1 LIMIT 1;`, token).Scan(&owner); err != nil {
@@ -162,7 +162,7 @@ func (p *pg) GetToken(ctx context.Context, token string) (bool, error) {
 	return true, nil
 }
 
-// OriginURLExists - проверяет наличие URL в БД
+// OriginURLExists - проверяет наличие URL в БД.
 func (p *pg) OriginURLExists(ctx context.Context, originURL string) (bool, error) {
 	var url string
 	err := p.db.QueryRowContext(ctx, `SELECT origin FROM url_service WHERE origin=$1 LIMIT 1`, originURL).Scan(&url)

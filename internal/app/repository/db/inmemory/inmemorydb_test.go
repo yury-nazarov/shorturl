@@ -6,6 +6,7 @@ import (
 	"testing"
 )
 
+// BenchmarkInMemoryDB бенчмарки на основные методы работы с БД.
 func BenchmarkInMemoryDB(b *testing.B) {
 	db := NewInMemoryDB()
 	token := "123456789qwertyXYZ"

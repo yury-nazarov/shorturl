@@ -14,14 +14,14 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// Controller структура для создания контроллера
+// Controller структура для создания контроллера.
 type Controller struct {
 	db     db.Repository
 	lc     service.LinkCompressor
 	logger *logrus.Logger
 }
 
-// NewController - вернет объект для доступа к хендлерам
+// NewController - вернет объект для доступа к хендлерам.
 func NewController(db db.Repository, lc service.LinkCompressor, logger *logrus.Logger) *Controller {
 	c := &Controller{
 		db:     db,
@@ -32,7 +32,7 @@ func NewController(db db.Repository, lc service.LinkCompressor, logger *logrus.L
 	return c
 }
 
-// AddJSONURLHandler - принимает URL в формате JSON
+// AddJSONURLHandler - принимает URL в формате JSON.
 func (c *Controller) AddJSONURLHandler(w http.ResponseWriter, r *http.Request) {
 	// Читаем присланые данные
 	bodyData, err := io.ReadAll(r.Body)
@@ -49,10 +49,9 @@ func (c *Controller) AddJSONURLHandler(w http.ResponseWriter, r *http.Request) {
 	// Unmarshal JSON
 	url := &models.URL{}
 	if err = json.Unmarshal(bodyData, &url); err != nil {
-		//if err = easyjson.Unmarshal(bodyData, url); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 	}
-	// Проверяем если в БД уже есть оригинальный URL, нуже для верной установки заголовков ответа
+	// Проверяем если в БД уже есть оригинальный URL, нуже для верной установки заголовков ответа.
 	originURLExists, err := c.db.OriginURLExists(r.Context(), url.Request)
 	if err != nil {
 		c.logger.Print("OriginURLExists: ", err)
@@ -89,7 +88,7 @@ func (c *Controller) AddJSONURLHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// AddURLHandler - принимает URL в текстовом формате
+// AddURLHandler - принимает URL в текстовом формате.
 func (c *Controller) AddURLHandler(w http.ResponseWriter, r *http.Request) {
 	// Читаем присланые данные
 	bodyData, err := io.ReadAll(r.Body)
@@ -136,9 +135,8 @@ func (c *Controller) AddURLHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// GetURLHandler по сокращенному  URL
-//				вернет оригинальный URL
-//				установит заголоко Location: originURL + HTTP 307
+// GetURLHandler по сокращенному  URL вернет оригинальный URL.
+//				установит заголовок Location: originURL + HTTP 307.
 func (c *Controller) GetURLHandler(w http.ResponseWriter, r *http.Request) {
 	// Получаем идентификатор пользователя
 	// 		Пустая строка userToken нужна для обратной совместимости с inMemory и fileDB
@@ -168,7 +166,7 @@ func (c *Controller) GetURLHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusTemporaryRedirect)
 }
 
-// GetUserURLs - вернет список всех пользовательских URL
+// GetUserURLs - вернет список всех пользовательских URL.
 func (c *Controller) GetUserURLs(w http.ResponseWriter, r *http.Request) {
 	// Получаем токен из кук
 	token, err := r.Cookie("session_token")
@@ -207,7 +205,7 @@ func (c *Controller) GetUserURLs(w http.ResponseWriter, r *http.Request) {
 }
 
 // DeleteURLs помечает удаленными URL по идентификатору (сокращенная часть url)
-//			  202 Accepted - успешное выполнение запроса пользователем его создавшем
+//			  202 Accepted - успешное выполнение запроса пользователем его создавшем.
 func (c *Controller) DeleteURLs(w http.ResponseWriter, r *http.Request) {
 	// Читаем из body [ "a", "b", "c", "d", ...] сериализовать в JSON
 	bodyData, err := io.ReadAll(r.Body)
@@ -260,12 +258,12 @@ func (c *Controller) DeleteURLs(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusAccepted)
 }
 
-// DefaultHandler - TODO
+// DefaultHandler - если остальные варианты не удовлетворили условию.
 func (c *Controller) DefaultHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusBadRequest)
 }
 
-// PingDB - Проверка соединения с БД
+// PingDB - Проверка соединения с БД.
 func (c *Controller) PingDB(w http.ResponseWriter, r *http.Request) {
 	if !c.db.Ping() {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -274,7 +272,7 @@ func (c *Controller) PingDB(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-// AddJSONURLBatchHandler - добавляет пачку URL пришедших в формате JSON
+// AddJSONURLBatchHandler - добавляет в БД пачку URL пришедших в формате JSON.
 func (c *Controller) AddJSONURLBatchHandler(w http.ResponseWriter, r *http.Request) {
 	// Читаем присланые данные
 	bodyData, err := io.ReadAll(r.Body)
