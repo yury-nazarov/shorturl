@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/yury-nazarov/shorturl/internal/app/repository/models"
 	"strings"
+	"sync"
 )
 
 // InMemoryDB - БД для URL
@@ -16,6 +17,7 @@ type URLInfo struct {
 
 type inMemoryDB struct {
 	db map[string]URLInfo
+	mu sync.RWMutex
 }
 
 
@@ -28,6 +30,9 @@ func NewInMemoryDB() *inMemoryDB {
 
 // Add Добавляет новый url в БД
 func (u *inMemoryDB) Add(ctx context.Context, shortURL string, longURL string, token string) error {
+	u.mu.Lock()
+	defer u.mu.Unlock()
+
 	u.db[shortURL] = URLInfo{longURL: longURL, token: token}
 	return nil
 }

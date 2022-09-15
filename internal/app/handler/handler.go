@@ -3,11 +3,11 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/yury-nazarov/shorturl/internal/app/repository/db"
 	"io"
 	"net/http"
 	"sync"
 
+	"github.com/yury-nazarov/shorturl/internal/app/repository/db"
 	"github.com/yury-nazarov/shorturl/internal/app/repository/models"
 	"github.com/yury-nazarov/shorturl/internal/app/service"
 
@@ -47,8 +47,9 @@ func (c *Controller) AddJSONURLHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Unmarshal JSON
-	var url models.URL
+	url := &models.URL{}
 	if err = json.Unmarshal(bodyData, &url); err != nil {
+	//if err = easyjson.Unmarshal(bodyData, url); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 	}
 	// Проверяем если в БД уже есть оригинальный URL, нуже для верной установки заголовков ответа
