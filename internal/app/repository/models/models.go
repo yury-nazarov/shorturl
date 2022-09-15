@@ -1,7 +1,5 @@
 package models
 
-
-
 // URL  Описывает:
 // 		пришедшие от пользователя данные в поле Request.
 //		отправляемые пользователю данные в поле Response.
@@ -16,9 +14,9 @@ type URL struct {
 //		отправляемые пользователю данные в полях: CorrelationID, ShortURL.
 // 		Используется в пакете: handler.
 type URLBatch struct {
-	CorrelationID 	string `json:"correlation_id"`
-	OriginalURL 	string `json:"original_url,omitempty"`
-	ShortURL 		string `json:"short_url,omitempty"`
+	CorrelationID string `json:"correlation_id"`
+	OriginalURL   string `json:"original_url,omitempty"`
+	ShortURL      string `json:"short_url,omitempty"`
 }
 
 // Структуры для работы с БД
@@ -31,7 +29,7 @@ type URLBatch struct {
 //              repository.inmemory         - метод GetUserURL, что бы вернуть все url пользователя.
 //              repository.pg.GetUserURL    - метод GetUserURL, что бы вернуть все url пользователя.
 type Record struct {
-	ShortURL  	string `json:"short_url"`
-	OriginURL 	string `json:"original_url"`
-	Token 		string `json:"token"`
+	ShortURL  string `json:"short_url"`
+	OriginURL string `json:"original_url"`
+	Token     string `json:"token"`
 }

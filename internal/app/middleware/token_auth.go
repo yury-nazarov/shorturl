@@ -5,9 +5,10 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
-	"github.com/yury-nazarov/shorturl/internal/app/repository/db"
 	"log"
 	"net/http"
+
+	"github.com/yury-nazarov/shorturl/internal/app/repository/db"
 )
 
 // HTTPCookieAuth - middleware - устанавливает подписаный токен для клиента, ели его нет.
@@ -52,7 +53,7 @@ func HTTPCookieAuth(db db.Repository) func(next http.Handler) http.Handler {
 }
 
 // setCookieEncryptToken - Генерит новый токен, шифрует, устанавливает в cookie
-func setCookieEncryptToken() *http.Cookie{
+func setCookieEncryptToken() *http.Cookie {
 	// Если токена нет - генерим, подписываем, добавляем в куку и передаем HTTP Request дальше
 	uuid := uniqueUserID()
 	// Подписываем его
@@ -60,15 +61,15 @@ func setCookieEncryptToken() *http.Cookie{
 
 	// Устанавливаем cookie
 	cookieToken := &http.Cookie{
-		Name: "session_token",
-		Value: sessionToken,
+		Name:   "session_token",
+		Value:  sessionToken,
 		Secure: false,
 	}
 	return cookieToken
 }
 
 // uniqueUserID - Генерит рандомный токен для пользователя
-func  uniqueUserID() string {
+func uniqueUserID() string {
 	uuid := make([]byte, 16)
 	_, err := rand.Read(uuid)
 	if err != nil {
@@ -77,7 +78,7 @@ func  uniqueUserID() string {
 	return hex.EncodeToString(uuid)
 }
 
-func encryptToken(uuid []byte) string{
+func encryptToken(uuid []byte) string {
 	key := []byte("qwe")
 	h := hmac.New(sha256.New, key)
 	h.Write(uuid)
@@ -85,4 +86,3 @@ func encryptToken(uuid []byte) string{
 
 	return hex.EncodeToString(dst)
 }
-

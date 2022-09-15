@@ -3,23 +3,23 @@ package inmemorydb
 import (
 	"context"
 	"fmt"
-	"github.com/yury-nazarov/shorturl/internal/app/repository/models"
 	"strings"
 	"sync"
+
+	"github.com/yury-nazarov/shorturl/internal/app/repository/models"
 )
 
 // InMemoryDB - БД для URL
 
 type URLInfo struct {
 	longURL string
-	token string
+	token   string
 }
 
 type inMemoryDB struct {
 	db map[string]URLInfo
 	mu sync.RWMutex
 }
-
 
 func NewInMemoryDB() *inMemoryDB {
 	db := &inMemoryDB{
@@ -56,7 +56,6 @@ func (u *inMemoryDB) GetToken(ctx context.Context, token string) (bool, error) {
 	return false, nil
 }
 
-
 // GetUserURL - вернет все url для пользователя
 func (u *inMemoryDB) GetUserURL(ctx context.Context, token string) ([]models.Record, error) {
 	var result []models.Record
@@ -85,7 +84,7 @@ func (u *inMemoryDB) OriginURLExists(ctx context.Context, originURL string) (boo
 //}
 
 // GetShortURLByIdentityPath Для обратной совместимости с Postgres
-func (u *inMemoryDB) GetShortURLByIdentityPath(ctx context.Context,identityPath string, token string) int {
+func (u *inMemoryDB) GetShortURLByIdentityPath(ctx context.Context, identityPath string, token string) int {
 	return 0
 }
 
@@ -94,6 +93,6 @@ func (u *inMemoryDB) URLMarkDeleted(ctx context.Context, id int) {}
 
 // URLBulkDelete Для обратной совместимости с Postgres
 //func (u *inMemoryDB) URLBulkDelete(ctx context.Context, idList []int) error {
-func (u *inMemoryDB) URLBulkDelete(ctx context.Context,  urlsID chan int) error {
+func (u *inMemoryDB) URLBulkDelete(ctx context.Context, urlsID chan int) error {
 	return nil
 }

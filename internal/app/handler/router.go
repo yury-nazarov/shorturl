@@ -1,9 +1,10 @@
 package handler
 
 import (
+	"net/http"
+
 	"github.com/sirupsen/logrus"
 	"github.com/yury-nazarov/shorturl/internal/app/repository/db"
-	"net/http"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"

@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/yury-nazarov/shorturl/internal/app/repository/db"
 	"net/http"
+
+	"github.com/yury-nazarov/shorturl/internal/app/repository/db"
 
 	"github.com/yury-nazarov/shorturl/internal/app/handler"
 	"github.com/yury-nazarov/shorturl/internal/app/service"
@@ -34,4 +35,3 @@ func main() {
 	logger.Info("the server run on ", cfg.ServerAddress)
 	logger.Fatal(http.ListenAndServe(cfg.ServerAddress, r))
 }
-

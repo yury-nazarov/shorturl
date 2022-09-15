@@ -2,8 +2,9 @@ package db
 
 import (
 	"context"
-	"github.com/yury-nazarov/shorturl/internal/app/repository/db/file"
-	"github.com/yury-nazarov/shorturl/internal/app/repository/db/inmemory"
+
+	filedb "github.com/yury-nazarov/shorturl/internal/app/repository/db/file"
+	inmemorydb "github.com/yury-nazarov/shorturl/internal/app/repository/db/inmemory"
 	"github.com/yury-nazarov/shorturl/internal/app/repository/db/pg"
 
 	"github.com/yury-nazarov/shorturl/internal/app/repository/models"
