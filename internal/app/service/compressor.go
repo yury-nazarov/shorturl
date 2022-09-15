@@ -14,7 +14,7 @@ import (
 type LinkCompressor struct {
 	urlLength   int
 	ServiceName string
-	logger 		*logrus.Logger
+	logger      *logrus.Logger
 }
 
 // NewLinkCompressor - объект содержит в себе все необходимое для подготови короткого URL
@@ -23,12 +23,11 @@ func NewLinkCompressor(cfg config.Config, logger *logrus.Logger) LinkCompressor 
 	lc := LinkCompressor{
 		urlLength:   cfg.URLLength,
 		ServiceName: cfg.BaseURL,
-		logger: logger,
+		logger:      logger,
 	}
 	logger.Info("the link compressor success init")
 	return lc
 }
-
 
 // SortURL - собирает сокращенный URL
 // 			 TODO: Опечатка. И переименовать в отражающее суть: MakeShortURL

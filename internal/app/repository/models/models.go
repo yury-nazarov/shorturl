@@ -1,46 +1,35 @@
 package models
 
-// Структуры для работы с БД
-
-// Record - описывает каждую запись в БД как json
-//			Используем:
-//				repository.file 		- read / write to file
-//				repository.inmemory  	- read / write to file
-// 				repository.pg.GetUserURL - парсинг отваета SQL запроса
-type Record struct {
-	ShortURL  	string `json:"short_url"`
-	OriginURL 	string `json:"original_url"`
-	Token 		string `json:"token"`
-}
-
-// структуры для handler помогающие обрабатывать и сериализовать коммуникации с клиентом
-
-// URL
-//		десериализуем данные пришедшие по HTTP
-// 		Так же с помощью этой структуры сериализуем ответ клиенту
+// URL  Описывает:
+// 		пришедшие от пользователя данные в поле Request.
+//		отправляемые пользователю данные в поле Response.
+// 		Используется в пакете: handler.
 type URL struct {
 	Request  string `json:"url,omitempty"`    // Не учитываем поле при Marshal
 	Response string `json:"result,omitempty"` // Не учитываем поле при Unmarshal
 }
 
-// URLBatch
-// 		 десериализуем данные пришедшие по HTTP
-// 		 Так же с помощью этой структуры сериализуем ответ клиенту
+// URLBatch Описывает:
+//		пришедшие от пользователя данные в полях: CorrelationID, OriginalURL.
+//		отправляемые пользователю данные в полях: CorrelationID, ShortURL.
+// 		Используется в пакете: handler.
 type URLBatch struct {
-	CorrelationID 	string `json:"correlation_id"`
-	OriginalURL 	string `json:"original_url,omitempty"`
-	ShortURL 		string `json:"short_url,omitempty"`
+	CorrelationID string `json:"correlation_id"`
+	OriginalURL   string `json:"original_url,omitempty"`
+	ShortURL      string `json:"short_url,omitempty"`
 }
 
+// Структуры для работы с БД
 
-// Вариант использовать пару общих структур для передаи данных между слоями
-// 		   и сериализации/десериализации коммуникаций с пользователем.
-
-////URLService структура представляет таблицу shorten_url в БД
-//type URLService struct {
-//	ID 		int
-//	Origin 	string
-//	Short  	string `json:"short_url"`
-//	Owner 	string `json:"original_url"`
-//	Delete 	bool
-//}
+// Record - Описывает:
+//              структуру данных при работе с БД.
+//          Используется в пакетах:
+//              repository.file             - метод GetUserURL, что бы вернуть все url пользователя,
+//                                            а так же для чтения и записи в файл в формате JSON.
+//              repository.inmemory         - метод GetUserURL, что бы вернуть все url пользователя.
+//              repository.pg.GetUserURL    - метод GetUserURL, что бы вернуть все url пользователя.
+type Record struct {
+	ShortURL  string `json:"short_url"`
+	OriginURL string `json:"original_url"`
+	Token     string `json:"token"`
+}

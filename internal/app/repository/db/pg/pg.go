@@ -61,7 +61,7 @@ func (p *pg) Add(ctx context.Context, shortURL string, longURL string, token str
 		log.Printf("sql | insert new url err %s\n", err)
 	}
 
-	log.Printf("DEBUG: User: %s add URL: %s -> %s\n", token,  longURL, shortURL)
+	log.Printf("DEBUG: User: %s add URL: %s -> %s\n", token, longURL, shortURL)
 	return nil
 }
 
@@ -116,7 +116,7 @@ func (p *pg) GetShortURLByIdentityPath(ctx context.Context, identityPath string,
 	err := p.db.QueryRowContext(ctx, `SELECT id FROM url_service 
 											WHERE short LIKE $1
 											AND owner=$2`,
-											"%"+identityPath, token).Scan(&urlID)
+		"%"+identityPath, token).Scan(&urlID)
 
 	if err != nil {
 		log.Printf("sql | select short url by identity path err: %s", err)
@@ -125,7 +125,7 @@ func (p *pg) GetShortURLByIdentityPath(ctx context.Context, identityPath string,
 }
 
 // URLBulkDelete помечает удаленным в таблице url_service. delete=true
-func (p *pg) URLBulkDelete(ctx context.Context,  urlsID chan int) error {
+func (p *pg) URLBulkDelete(ctx context.Context, urlsID chan int) error {
 	// шаг 1 — объявляем транзакцию
 	tx, err := p.db.Begin()
 	if err != nil {
@@ -142,7 +142,7 @@ func (p *pg) URLBulkDelete(ctx context.Context,  urlsID chan int) error {
 	defer stmt.Close()
 
 	// шаг 3 - указываем, что для каждого id в таблице url_service нужно обновить поле delete
-	for id := range urlsID{
+	for id := range urlsID {
 		fmt.Printf("DEBUG: transaction statement prepare delete url with ID:%d\n", id)
 		if _, err = stmt.ExecContext(ctx, id); err != nil {
 			return fmt.Errorf("sql | transaction statement exec context err %w", err)
@@ -152,8 +152,6 @@ func (p *pg) URLBulkDelete(ctx context.Context,  urlsID chan int) error {
 	fmt.Printf("DEBUG: Commit transaction\n")
 	return tx.Commit()
 }
-
-
 
 // GetToken - Проверяет наличие токена в БД
 func (p *pg) GetToken(ctx context.Context, token string) (bool, error) {

@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/yury-nazarov/shorturl/internal/app/repository/db"
 	"net/http"
+
+	"github.com/yury-nazarov/shorturl/internal/app/repository/db"
 
 	"github.com/yury-nazarov/shorturl/internal/app/handler"
 	"github.com/yury-nazarov/shorturl/internal/app/service"
@@ -20,7 +21,10 @@ func main() {
 		logger.Fatal(err)
 	}
 	// Инициируем БД
-	db := db.New(cfg, logger)
+	db, err := db.New(cfg, logger)
+	if err != nil {
+		logger.Fatal(err)
+	}
 	// Создаем объект для доступа к методам компрессии URL
 	linkCompressor := service.NewLinkCompressor(cfg, logger)
 	// Инициируем объект для доступа к хендлерам
@@ -31,4 +35,3 @@ func main() {
 	logger.Info("the server run on ", cfg.ServerAddress)
 	logger.Fatal(http.ListenAndServe(cfg.ServerAddress, r))
 }
-

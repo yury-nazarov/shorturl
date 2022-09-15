@@ -3,11 +3,11 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/yury-nazarov/shorturl/internal/app/repository/db"
 	"io"
 	"net/http"
 	"sync"
 
+	"github.com/yury-nazarov/shorturl/internal/app/repository/db"
 	"github.com/yury-nazarov/shorturl/internal/app/repository/models"
 	"github.com/yury-nazarov/shorturl/internal/app/service"
 
@@ -16,16 +16,16 @@ import (
 
 // Controller структура для создания контроллера
 type Controller struct {
-	db db.Repository
-	lc service.LinkCompressor
-	logger 	*logrus.Logger
+	db     db.Repository
+	lc     service.LinkCompressor
+	logger *logrus.Logger
 }
 
 // NewController - вернет объект для доступа к хендлерам
 func NewController(db db.Repository, lc service.LinkCompressor, logger *logrus.Logger) *Controller {
 	c := &Controller{
-		db: db,
-		lc: lc,
+		db:     db,
+		lc:     lc,
 		logger: logger,
 	}
 	logger.Info("the controller success init")
@@ -47,8 +47,9 @@ func (c *Controller) AddJSONURLHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Unmarshal JSON
-	var url models.URL
+	url := &models.URL{}
 	if err = json.Unmarshal(bodyData, &url); err != nil {
+		//if err = easyjson.Unmarshal(bodyData, url); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 	}
 	// Проверяем если в БД уже есть оригинальный URL, нуже для верной установки заголовков ответа
@@ -61,7 +62,7 @@ func (c *Controller) AddJSONURLHandler(w http.ResponseWriter, r *http.Request) {
 	shortURL := c.lc.SortURL(url.Request)
 	token, err := r.Cookie("session_token")
 	if err != nil {
-		c.logger.Print("AddURLHandler: err:",err)
+		c.logger.Print("AddURLHandler: err:", err)
 	}
 	if err = c.db.Add(r.Context(), shortURL, url.Request, token.Value); err != nil {
 		c.logger.Print(err)
@@ -115,7 +116,7 @@ func (c *Controller) AddURLHandler(w http.ResponseWriter, r *http.Request) {
 	if !originURLExists {
 		token, err := r.Cookie("session_token")
 		if err != nil {
-			c.logger.Print("AddURLHandler: err:",err)
+			c.logger.Print("AddURLHandler: err:", err)
 		}
 		if err = c.db.Add(r.Context(), shortURL, originURL, token.Value); err != nil {
 			c.logger.Print(err)
@@ -155,7 +156,7 @@ func (c *Controller) GetURLHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 	}
-	c.logger.Printf("DEBUG: User: %s get URL: %s -> %s\n", token,  shortURL, originURL)
+	c.logger.Printf("DEBUG: User: %s get URL: %s -> %s\n", token, shortURL, originURL)
 
 	// HTTP 410 если url помечен как удаленный
 	if len(originURL) == 0 {
@@ -236,7 +237,6 @@ func (c *Controller) DeleteURLs(w http.ResponseWriter, r *http.Request) {
 	// Получаем id записей которые нужно пометить удаленными
 	urlsID := make(chan int, len(urlIdentityList))
 
-
 	var wg sync.WaitGroup
 	for _, identity := range urlIdentityList {
 		wg.Add(1)
@@ -259,7 +259,6 @@ func (c *Controller) DeleteURLs(w http.ResponseWriter, r *http.Request) {
 	c.logger.Println("DEBUG: Stop URLBulkDelete:")
 	w.WriteHeader(http.StatusAccepted)
 }
-
 
 // DefaultHandler - TODO
 func (c *Controller) DefaultHandler(w http.ResponseWriter, r *http.Request) {
@@ -301,7 +300,7 @@ func (c *Controller) AddJSONURLBatchHandler(w http.ResponseWriter, r *http.Reque
 		shortURL := c.lc.SortURL(item.OriginalURL)
 		token, err := r.Cookie("session_token")
 		if err != nil {
-			c.logger.Print("AddURLHandler: err:",err)
+			c.logger.Print("AddURLHandler: err:", err)
 		}
 		if err = c.db.Add(r.Context(), shortURL, item.OriginalURL, token.Value); err != nil {
 			c.logger.Print(err)
@@ -310,7 +309,7 @@ func (c *Controller) AddJSONURLBatchHandler(w http.ResponseWriter, r *http.Reque
 		// Сразу подготавливаем слайс для ответа пользователю
 		response = append(response, models.URLBatch{
 			CorrelationID: item.CorrelationID,
-			ShortURL: shortURL,
+			ShortURL:      shortURL,
 		})
 	}
 

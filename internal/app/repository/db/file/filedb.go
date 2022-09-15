@@ -11,8 +11,6 @@ import (
 
 // Хранение данных в файле
 
-
-
 type fileDB struct {
 	name string
 }
@@ -33,7 +31,7 @@ func (f *fileDB) Add(ctx context.Context, shortURL string, originURL string, tok
 	data := &models.Record{
 		ShortURL:  shortURL,
 		OriginURL: originURL,
-		Token: token,
+		Token:     token,
 	}
 	// Открываем файл на запись
 	p, err := newProducer(f.name)
@@ -99,8 +97,6 @@ func (f *fileDB) GetToken(ctx context.Context, token string) (bool, error) {
 	}
 }
 
-
-
 // GetUserURL - вернет слайс из структур со всем URL пользователя
 func (f *fileDB) GetUserURL(ctx context.Context, token string) ([]models.Record, error) {
 	// Открываем файл на чтение
@@ -148,7 +144,6 @@ func (f *fileDB) GetShortURLByIdentityPath(ctx context.Context, identityPath str
 
 // URLBulkDelete Для обратной совместимости с Postgres
 //func (f *fileDB) URLBulkDelete(ctx context.Context, idList []int) error {
-func (f *fileDB) URLBulkDelete(ctx context.Context,  urlsID chan int) error {
+func (f *fileDB) URLBulkDelete(ctx context.Context, urlsID chan int) error {
 	return nil
 }
-

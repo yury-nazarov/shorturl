@@ -1,9 +1,10 @@
 package handler
 
 import (
+	"net/http"
+
 	"github.com/sirupsen/logrus"
 	"github.com/yury-nazarov/shorturl/internal/app/repository/db"
-	"net/http"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -39,6 +40,7 @@ func NewRouter(c *Controller, db db.Repository, logger *logrus.Logger) http.Hand
 		})
 	})
 	r.HandleFunc("/ping", c.PingDB)
+	r.Mount("/debug", middleware.Profiler())
 	c.logger.Info("the handler endpoint success init")
 	return r
 }
