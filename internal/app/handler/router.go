@@ -39,6 +39,7 @@ func NewRouter(c *Controller, db db.Repository, logger *logrus.Logger) http.Hand
 		})
 	})
 	r.HandleFunc("/ping", c.PingDB)
+	r.Mount("/debug", middleware.Profiler())
 	c.logger.Info("the handler endpoint success init")
 	return r
 }
