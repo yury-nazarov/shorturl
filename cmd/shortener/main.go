@@ -10,6 +10,12 @@ import (
 	"github.com/yury-nazarov/shorturl/internal/logger"
 )
 
+var (
+	buildVersion = "N/A"
+	buildDate = "N/A"
+	buildCommit = "N/A"
+)
+
 func main() {
 	// Инициируем логгер.
 	logger := logger.New()
@@ -31,6 +37,9 @@ func main() {
 	// Инициируем роутер.
 	r := handler.NewRouter(controller, db, logger)
 	// Запускаем сервер.
+	logger.Info("Build version: ", buildVersion)
+	logger.Info("Build date: ", buildDate)
+	logger.Info("Build commit: ", buildCommit)
 	logger.Info("the server run on ", cfg.ServerAddress)
 	logger.Fatal(http.ListenAndServe(cfg.ServerAddress, r))
 }
