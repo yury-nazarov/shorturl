@@ -74,7 +74,7 @@ func (u *inMemoryDB) Ping() bool {
 
 // OriginURLExists Для обратной совместимости с Postgres.
 func (u *inMemoryDB) OriginURLExists(ctx context.Context, originURL string) (bool, error) {
-	return true, nil
+	return false, nil
 }
 
 // GetShortURLByIdentityPath Для обратной совместимости с Postgres.
