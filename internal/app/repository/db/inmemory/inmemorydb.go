@@ -49,7 +49,8 @@ func (u *inMemoryDB) Get(ctx context.Context, shortURL string, token string) (st
 // GetToken за O(n) ищет первую подходящую запись с токеном.
 func (u *inMemoryDB) GetToken(ctx context.Context, token string) (bool, error) {
 	for _, urlInfo := range u.db {
-		if strings.Contains(token, urlInfo.token) {
+		//if strings.Contains(token, urlInfo.token) {
+		if token == urlInfo.token {
 			return true, nil
 		}
 	}

@@ -102,7 +102,7 @@ func TestInMemoryDB_GetToken(t *testing.T) {
 	// Токена не существует
 	tokenNotValid, err := db.GetToken(ctx, "wrongToken")
 	if err != nil {
-		t.Errorf("Add return err %v;", err)
+		t.Errorf("GetToken return err %v;", err)
 	}
 	assert.Equal(t, false, tokenNotValid)
 }
