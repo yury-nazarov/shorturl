@@ -152,7 +152,7 @@ func TestInMemoryDB_OriginURLExists(t *testing.T) {
 	ctx := context.Background()
 
 	ok, _ := db.OriginURLExists(ctx, "")
-	assert.Equal(t, true, ok)
+	assert.NotEqual(t, true, ok)
 }
 
 
