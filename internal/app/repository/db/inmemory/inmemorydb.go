@@ -3,7 +3,6 @@ package inmemorydb
 import (
 	"context"
 	"fmt"
-	"strings"
 	"sync"
 
 	"github.com/yury-nazarov/shorturl/internal/app/repository/models"
@@ -49,8 +48,8 @@ func (u *inMemoryDB) Get(ctx context.Context, shortURL string, token string) (st
 // GetToken за O(n) ищет первую подходящую запись с токеном.
 func (u *inMemoryDB) GetToken(ctx context.Context, token string) (bool, error) {
 	for _, urlInfo := range u.db {
-		if strings.Contains(token, urlInfo.token) {
-			return true, nil
+		if token == urlInfo.token {
+				return true, nil
 		}
 	}
 	return false, nil
@@ -60,7 +59,8 @@ func (u *inMemoryDB) GetToken(ctx context.Context, token string) (bool, error) {
 func (u *inMemoryDB) GetUserURL(ctx context.Context, token string) ([]models.Record, error) {
 	var result []models.Record
 	for k, urlInfo := range u.db {
-		if strings.Contains(token, urlInfo.token) {
+		//if strings.Contains(token, urlInfo.token) {
+		if token == urlInfo.token {
 			result = append(result, models.Record{ShortURL: k, OriginURL: urlInfo.longURL})
 		}
 	}
@@ -74,16 +74,13 @@ func (u *inMemoryDB) Ping() bool {
 
 // OriginURLExists Для обратной совместимости с Postgres.
 func (u *inMemoryDB) OriginURLExists(ctx context.Context, originURL string) (bool, error) {
-	return false, nil
+	return true, nil
 }
 
 // GetShortURLByIdentityPath Для обратной совместимости с Postgres.
 func (u *inMemoryDB) GetShortURLByIdentityPath(ctx context.Context, identityPath string, token string) int {
 	return 0
 }
-
-// URLMarkDeleted Для обратной совместимости с Postgres.
-func (u *inMemoryDB) URLMarkDeleted(ctx context.Context, id int) {}
 
 // URLBulkDelete Для обратной совместимости с Postgres.
 func (u *inMemoryDB) URLBulkDelete(ctx context.Context, urlsID chan int) error {
