@@ -54,7 +54,7 @@ func HTTPResponseCompressor(next http.Handler) http.Handler {
 // HTTPRequestDecompressor - от клиента пришел заголовок: "Content-Encoding: gzip"
 //							 (Данные от клиента сжаты в формате gzip!)
 //  						 распаковывает сжатый gzip HTTP Request Body.
-//							 Добавляет в БД текстовую ссылку
+//							 Добавляет в БД текстовую ссылку.
 func HTTPRequestDecompressor(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Если запрос не сжат с помощью gzip, передаем управление дальше без изменений
