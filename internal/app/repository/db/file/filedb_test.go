@@ -112,7 +112,9 @@ func TestFileDB_GetToken(t *testing.T) {
 
 	// Токена не существует
 	tokenNotValid, err := db.GetToken(ctx, "wrongToken")
-	assert.Equal(t, false, tokenNotValid)
+	if err != nil {
+		assert.Equal(t, false, tokenNotValid)
+	}
 
 	err = os.Remove("tests.txt")
 	if err != nil {
