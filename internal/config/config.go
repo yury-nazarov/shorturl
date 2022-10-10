@@ -16,7 +16,7 @@ type Config struct {
 	FileStoragePath string `env:"FILE_STORAGE_PATH"`
 	DatabaseDSN     string `env:"DATABASE_DSN"`
 	URLLength       int    `env:"URLLength" envDefault:"5"`
-	TLS 			string `env:"ENABLE_HTTPS" envDefault:"Disable"`
+	TLS 			bool   `env:"ENABLE_HTTPS"`
 }
 
 // NewConfig создает объект для доступа к конфигу.
@@ -26,7 +26,7 @@ func NewConfig(logger *logrus.Logger) (Config, error) {
 	flag.StringVar(&cfg.BaseURL, "b", cfg.BaseURL, "set base URL, by example: http://127.0.0.1:8080")
 	flag.StringVar(&cfg.FileStoragePath, "f", cfg.FileStoragePath, "set file path for storage, by example: db.txt")
 	flag.StringVar(&cfg.DatabaseDSN, "d", cfg.DatabaseDSN, "set database string for Postgres, by example: 'host=localhost port=5432 user=example password=123 dbname=example sslmode=disable connect_timeout=5'")
-	flag.StringVar(&cfg.TLS, "s", cfg.TLS, "set Enable or Disable for HTTPS")
+	flag.BoolVar(&cfg.TLS, "s", cfg.TLS, "user -s for run HTTPS")
 
 	if err := env.Parse(&cfg); err != nil {
 		return cfg, err

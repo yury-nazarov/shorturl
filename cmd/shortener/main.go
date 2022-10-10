@@ -40,13 +40,14 @@ func main() {
 	logger.Info("Build version: ", buildVersion)
 	logger.Info("Build date: ", buildDate)
 	logger.Info("Build commit: ", buildCommit)
-	logger.Info("the server run on ", cfg.ServerAddress)
 
-	if cfg.TLS == "Enable" {
+	if cfg.TLS == true {
 		certFile := "internal/tls/cert.crt"
 		keyFile  := "internal/tls/private.key"
+		logger.Info("the HTTPS server run on ", cfg.ServerAddress)
 		logger.Fatal(http.ListenAndServeTLS(cfg.ServerAddress, certFile, keyFile, r))
 	} else {
+		logger.Info("the HTTP server run on ", cfg.ServerAddress)
 		logger.Fatal(http.ListenAndServe(cfg.ServerAddress, r))
 	}
 }
