@@ -2,8 +2,9 @@ package filedb
 
 import (
 	"encoding/json"
-	"github.com/yury-nazarov/shorturl/internal/app/repository/models"
 	"os"
+
+	"github.com/yury-nazarov/shorturl/internal/app/repository/models"
 )
 
 // Запись данных в файл
