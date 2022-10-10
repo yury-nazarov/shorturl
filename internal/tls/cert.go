@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-// CertInit генерит сертификат и приватный ключь.
+// CertInit создает сертификат и приватный ключ по указаным путям
 func CertInit(certPath string, keyPath string) error {
 	// Создаем шаблон сертификата
 	cert := &x509.Certificate{
