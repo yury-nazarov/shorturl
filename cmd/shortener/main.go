@@ -41,7 +41,7 @@ func main() {
 	logger.Info("Build date: ", buildDate)
 	logger.Info("Build commit: ", buildCommit)
 
-	if cfg.TLS == true {
+	if cfg.TLS {
 		certFile := "internal/tls/cert.crt"
 		keyFile  := "internal/tls/private.key"
 		logger.Info("the HTTPS server run on ", cfg.ServerAddress)
