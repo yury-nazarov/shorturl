@@ -2,7 +2,6 @@ package config
 
 import (
 	"github.com/stretchr/testify/assert"
-	"github.com/yury-nazarov/shorturl/internal/logger"
 	"os"
 	"testing"
 )
@@ -64,49 +63,39 @@ func Test_parseEnv(t *testing.T) {
 		assert.Errorf(t, err, "err")
 	}
 	assert.Equal(t, wantCfg, cfg)
+	// Delete Env
+	os.Unsetenv("SERVER_ADDRESS")
+	os.Unsetenv("BASE_URL")
+	os.Unsetenv("FILE_STORAGE_PATH")
 }
 
-// TODO: Пока не понятно как тестить запуск приложения с флагами
-//// Test_parseFlag тест инит конфиг из флагов
-//// Запустить нужно так же с флагами:
-//func Test_parseFlag(t *testing.T) {
+
+//// TestNewConfig Комплексный тест
+//func TestNewConfig(t *testing.T) {
+//	logger := logger.New()
+//
+//	os.Setenv("SERVER_ADDRESS", "localhost-all:8080")
+//	// Значения из конфигурационного файла НЕ должны перезаписать SERVER_ADDRESS
+//	os.Setenv("CONFIG", "config.json")
+//
 //	// Ожидаемый результат
 //	wantCfg := Config{
-//		ServerAddress: "localhost-flag:8182",
-//		//BaseURL: "http://localhost-flag",
-//		//FileStoragePath: "/path/to/file.db",
-//		//DatabaseDSN: "",
-//		//URLLength: 5,
+//		// Значение из переменной окружения как более приоритетной
+//		ServerAddress: "localhost-all:8080",
+//		// Значения из файла конфигурации как из менее приритетного
+//		BaseURL: "http://localhost",
+//		FileStoragePath: "/path/to/file.db",
+//		DatabaseDSN: "",
+//		TLS: false,
+//		URLLength: 5,
 //	}
 //
-//	cfg := parseFlag()
+//	cfg, err := NewConfig(logger)
+//	if err != nil {
+//		assert.Error(t, err)
+//	}
 //	assert.Equal(t, wantCfg, cfg)
+//	// Delete Env
+//	os.Unsetenv("SERVER_ADDRESS")
+//	os.Unsetenv("CONFIG")
 //}
-
-// TestNewConfig Комплексный тест
-//
-func TestNewConfig(t *testing.T) {
-	logger := logger.New()
-
-	os.Setenv("SERVER_ADDRESS", "localhost-all:8080")
-	// Значения из конфигурационного файла НЕ должны перезаписать SERVER_ADDRESS
-	os.Setenv("CONFIG", "config.json")
-
-	// Ожидаемый результат
-	wantCfg := Config{
-		// Значение из переменной окружения как более приоритетной
-		ServerAddress: "localhost-all:8080",
-		// Значения из файла конфигурации как из менее приритетного
-		BaseURL: "http://localhost",
-		FileStoragePath: "/path/to/file.db",
-		DatabaseDSN: "",
-		TLS: false,
-	}
-
-
-	cfg, err := NewConfig(logger)
-	if err != nil {
-		assert.Error(t, err)
-	}
-	assert.Equal(t, wantCfg, cfg)
-}
