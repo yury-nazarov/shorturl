@@ -3,12 +3,10 @@ package config
 import (
 	"encoding/json"
 	"flag"
-	"fmt"
 	"github.com/caarlos0/env/v6"
 	"github.com/sirupsen/logrus"
 	"io/ioutil"
 	"strconv"
-	"strings"
 )
 
 //  Получаем конфигурацию. Приоритет: флаги > переменные окружения > файл
@@ -73,12 +71,8 @@ func NewConfig(logger *logrus.Logger) (Config, error) {
 	// Сравниваем переменные по приоритету cfgFlag > cfgEnv > cfgFile
 	cfg := selectConfig(cfgs)
 
-	// Если конфиг пустой, останавливаем выполнение программы
-	msg := isEmptyConfig(cfg)
-	if len(msg) != 0 {
-		return cfg, fmt.Errorf("please set follow config item for run service: %s", msg)
-	}
-
+	// Устанавливаем дефолтный конфиг
+	cfg = defaultConfig(cfg)
 	logger.Infof("%+v\n", cfg)
 	//logger.Info("the config success init")
 	return cfg, nil
@@ -154,14 +148,13 @@ func parseConfigFile(filePath string) (Config, error) {
 	return cfg, nil
 }
 
-// isEmptyConfig Проверяем наличие обязательного конфига для запуска сервиса
-func isEmptyConfig(cfg Config) string {
-	var message []string
+// defaultConfig устанавливает дефолтный конфиг
+func defaultConfig(cfg Config) Config {
 	if len(cfg.ServerAddress) == 0 {
-		message = append(message, "ServerAddress")
+		cfg.ServerAddress = "127.0.0.1:8080"
 	}
 	if len(cfg.BaseURL) == 0 {
-		message = append(message, "BaseURL")
+		cfg.BaseURL = "http://127.0.0.1"
 	}
-	return strings.Join(message, ", ")
+	return cfg
 }

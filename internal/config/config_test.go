@@ -106,7 +106,7 @@ func TestNewConfig(t *testing.T) {
 
 	cfg, err := NewConfig(logger)
 	if err != nil {
-
+		assert.Error(t, err)
 	}
 	assert.Equal(t, wantCfg, cfg)
 }
