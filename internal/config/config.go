@@ -156,5 +156,8 @@ func defaultConfig(cfg Config) Config {
 	if len(cfg.BaseURL) == 0 {
 		cfg.BaseURL = "http://127.0.0.1"
 	}
+	if cfg.URLLength == 0 {
+		cfg.URLLength = 5
+	}
 	return cfg
 }
