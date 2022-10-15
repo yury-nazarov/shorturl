@@ -154,7 +154,7 @@ func defaultConfig(cfg Config) Config {
 		cfg.ServerAddress = "127.0.0.1:8080"
 	}
 	if len(cfg.BaseURL) == 0 {
-		cfg.BaseURL = "http://127.0.0.1"
+		cfg.BaseURL = "http://127.0.0.1:8080"
 	}
 	if cfg.URLLength == 0 {
 		cfg.URLLength = 5
