@@ -2,8 +2,9 @@ package db
 
 import (
 	"context"
-	"github.com/yury-nazarov/shorturl/internal/app/repository/db/file"
-	"github.com/yury-nazarov/shorturl/internal/app/repository/db/inmemory"
+
+	filedb "github.com/yury-nazarov/shorturl/internal/app/repository/db/file"
+	inmemorydb "github.com/yury-nazarov/shorturl/internal/app/repository/db/inmemory"
 	"github.com/yury-nazarov/shorturl/internal/app/repository/db/pg"
 
 	"github.com/yury-nazarov/shorturl/internal/app/repository/models"
@@ -33,20 +34,20 @@ type Repository interface {
 //		 1. Postgres
 //		 2. FileDB
 //		 3. Inmemory
-func New(cfg config.Config, logger *logrus.Logger) Repository {
+func New(cfg config.Config, logger *logrus.Logger) (Repository, error) {
 	if len(cfg.DatabaseDSN) != 0 {
 		// Создаем экземпляр подключения к БД и инициируем схему, если её нет
 		db := pg.New(cfg.DatabaseDSN)
 		if err := db.SchemeInit(); err != nil {
-			logger.Fatal(err)
+			return nil, err
 		}
 		logger.Println("DB Postgres is connecting")
-		return db
+		return db, nil
 	}
 	if len(cfg.FileStoragePath) != 0 {
 		logger.Println("DB File is connecting")
-		return filedb.NewFileDB(cfg.FileStoragePath)
+		return filedb.NewFileDB(cfg.FileStoragePath), nil
 	}
 	logger.Println("DB InMemory is connecting")
-	return inmemorydb.NewInMemoryDB()
+	return inmemorydb.NewInMemoryDB(), nil
 }

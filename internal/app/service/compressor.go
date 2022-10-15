@@ -14,24 +14,21 @@ import (
 type LinkCompressor struct {
 	urlLength   int
 	ServiceName string
-	logger 		*logrus.Logger
+	logger      *logrus.Logger
 }
 
-// NewLinkCompressor - объект содержит в себе все необходимое для подготови короткого URL
-//func NewLinkCompressor(urlLength int, urlAnswer string, logger *logrus.Logger) LinkCompressor {
+// NewLinkCompressor - объект содержит в себе все необходимое для подготови короткого URL.
 func NewLinkCompressor(cfg config.Config, logger *logrus.Logger) LinkCompressor {
 	lc := LinkCompressor{
 		urlLength:   cfg.URLLength,
 		ServiceName: cfg.BaseURL,
-		logger: logger,
+		logger:      logger,
 	}
 	logger.Info("the link compressor success init")
 	return lc
 }
 
-
-// SortURL - собирает сокращенный URL
-// 			 TODO: Опечатка. И переименовать в отражающее суть: MakeShortURL
+// SortURL - собирает сокращенный URL.
 func (l *LinkCompressor) SortURL(originalLink string) string {
 	path := l.shortPath(originalLink)
 	url := fmt.Sprintf("%s/%s", l.ServiceName, path[:l.urlLength])
