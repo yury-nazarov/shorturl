@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"syscall"
 )
 
 var (
@@ -51,8 +52,8 @@ func main() {
 	idleConnectionClose := make(chan struct{})
 	// канал для перенаправления прерываний
 	sigint := make(chan os.Signal, 1)
-	// регистрируем перенаправление прерываний
-	signal.Notify(sigint)
+	// регистрируем перенаправление прерываний которые будем обрабатывать
+	signal.Notify(sigint, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 	// запускаем параллельно горутину для обработки пойманных прерываний
 	go func() {
 		// Закрываемсетевые соединения корректно завершая обработку HTTP запроов клиентов
