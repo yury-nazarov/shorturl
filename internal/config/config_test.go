@@ -1,9 +1,10 @@
 package config
 
 import (
-	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 /*
@@ -24,10 +25,10 @@ import (
 func Test_parseConfigFile(t *testing.T) {
 	// Ожидаемый результат
 	wantCfg := Config{
-		ServerAddress: "localhost:8181",
-		BaseURL: "http://localhost",
+		ServerAddress:   "localhost:8181",
+		BaseURL:         "http://localhost",
 		FileStoragePath: "/path/to/file.db",
-		DatabaseDSN: "",
+		DatabaseDSN:     "",
 	}
 
 	cfg, err := parseConfigFile("config.json")
@@ -47,11 +48,11 @@ func Test_parseConfigFile_ConfigFileNotExist(t *testing.T) {
 func Test_parseEnv(t *testing.T) {
 	// Ожидаемый результат
 	wantCfg := Config{
-		ServerAddress: "localhost-env:8181",
-		BaseURL: "http://localhost-env",
+		ServerAddress:   "localhost-env:8181",
+		BaseURL:         "http://localhost-env",
 		FileStoragePath: "/path/to/file.db",
-		DatabaseDSN: "",
-		URLLength: 5,
+		DatabaseDSN:     "",
+		URLLength:       5,
 	}
 	// Устанавливаем переменные окружения
 	os.Setenv("SERVER_ADDRESS", "localhost-env:8181")
@@ -68,34 +69,3 @@ func Test_parseEnv(t *testing.T) {
 	os.Unsetenv("BASE_URL")
 	os.Unsetenv("FILE_STORAGE_PATH")
 }
-
-
-//// TestNewConfig Комплексный тест
-//func TestNewConfig(t *testing.T) {
-//	logger := logger.New()
-//
-//	os.Setenv("SERVER_ADDRESS", "localhost-all:8080")
-//	// Значения из конфигурационного файла НЕ должны перезаписать SERVER_ADDRESS
-//	os.Setenv("CONFIG", "config.json")
-//
-//	// Ожидаемый результат
-//	wantCfg := Config{
-//		// Значение из переменной окружения как более приоритетной
-//		ServerAddress: "localhost-all:8080",
-//		// Значения из файла конфигурации как из менее приритетного
-//		BaseURL: "http://localhost",
-//		FileStoragePath: "/path/to/file.db",
-//		DatabaseDSN: "",
-//		TLS: false,
-//		URLLength: 5,
-//	}
-//
-//	cfg, err := NewConfig(logger)
-//	if err != nil {
-//		assert.Error(t, err)
-//	}
-//	assert.Equal(t, wantCfg, cfg)
-//	// Delete Env
-//	os.Unsetenv("SERVER_ADDRESS")
-//	os.Unsetenv("CONFIG")
-//}

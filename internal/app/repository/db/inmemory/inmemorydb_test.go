@@ -3,8 +3,9 @@ package inmemorydb
 import (
 	"context"
 	"fmt"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 // BenchmarkInMemoryDB бенчмарки на основные методы работы с БД.
@@ -115,19 +116,19 @@ func TestInMemoryDB_GetUserURL(t *testing.T) {
 
 	// Добавляем тестовые данные
 	for i := 0; i < 3; i++ {
-		err := db.Add(ctx, fmt.Sprintf("%s_%d", "shortURL_", i), fmt.Sprintf("%s_%d", "originURL_", i),"token")
+		err := db.Add(ctx, fmt.Sprintf("%s_%d", "shortURL_", i), fmt.Sprintf("%s_%d", "originURL_", i), "token")
 		if err != nil {
 			t.Errorf("Add demo data return err %v;", err)
 		}
 	}
 
 	// Получаем все URL пользователя по токену
-	data, err := db.GetUserURL(ctx,"token")
+	data, err := db.GetUserURL(ctx, "token")
 	if err != nil {
 		t.Errorf("GetUserURL return err %v;", err)
 	}
 	// Проверяем что сокращенный и оригинальный URL совпадают с теми, которые были добавлены в БД
-	for i, record := range data{
+	for i, record := range data {
 		assert.Equal(t, fmt.Sprintf("%s_%d", "originURL_", i), record.OriginURL)
 		assert.Equal(t, fmt.Sprintf("%s_%d", "shortURL_", i), record.ShortURL)
 	}
@@ -154,7 +155,6 @@ func TestInMemoryDB_OriginURLExists(t *testing.T) {
 	ok, _ := db.OriginURLExists(ctx, "")
 	assert.NotEqual(t, true, ok)
 }
-
 
 // TestInMemoryDB_GetShortURLByIdentityPath -
 func TestInMemoryDB_GetShortURLByIdentityPath(t *testing.T) {

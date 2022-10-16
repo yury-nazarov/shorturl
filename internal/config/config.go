@@ -3,10 +3,11 @@ package config
 import (
 	"encoding/json"
 	"flag"
-	"github.com/caarlos0/env/v6"
-	"github.com/sirupsen/logrus"
 	"io/ioutil"
 	"strconv"
+
+	"github.com/caarlos0/env/v6"
+	"github.com/sirupsen/logrus"
 )
 
 //  Получаем конфигурацию. Приоритет: флаги > переменные окружения > файл
@@ -18,19 +19,19 @@ import (
 //				- анмаршала JSON для чтения из файла конфига
 type Config struct {
 	// Адрес и порт на котором будет запущен сервис: 127.0.0.1:8080
-	ServerAddress   string 	`env:"SERVER_ADDRESS"    json:"server_address"`
+	ServerAddress string `env:"SERVER_ADDRESS"    json:"server_address"`
 	// Основной FQDN/Адрес для сервиса сокращения URL: http://127.0.0.1/
-	BaseURL         string 	`env:"BASE_URL"          json:"base_url"`
+	BaseURL string `env:"BASE_URL"          json:"base_url"`
 	// Путь до файла БД
-	FileStoragePath string 	`env:"FILE_STORAGE_PATH" json:"file_storage_path"`
+	FileStoragePath string `env:"FILE_STORAGE_PATH" json:"file_storage_path"`
 	// DNS для подключения к Postgres
-	DatabaseDSN     string 	`env:"DATABASE_DSN"      json:"database_dsn"`
+	DatabaseDSN string `env:"DATABASE_DSN"      json:"database_dsn"`
 	// Если True то будет запущен HTTPS. Допустимые значения: true, false
-	TLS 			bool 	`env:"ENABLE_HTTPS"      json:"enable_https"`
+	TLS bool `env:"ENABLE_HTTPS"      json:"enable_https"`
 	// Путь до файла конфигурации. Файл конфигурации обладает наименьшим приоритетом
-	fileConfig      string 	`env:"CONFIG"`
+	fileConfig string `env:"CONFIG"`
 	// Длина сокращенного URL
-	URLLength       int    	`env:"URLLength"         json:"url_length"        envDefault:"5"`
+	URLLength int `env:"URLLength"         json:"url_length"        envDefault:"5"`
 }
 
 // NewConfig создает объект для доступа к конфигу.

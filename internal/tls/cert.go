@@ -20,14 +20,14 @@ func CertInit(certPath string, keyPath string) error {
 		SerialNumber: big.NewInt(1658),
 		Subject: pkix.Name{
 			Organization: []string{"ShortURL Service"},
-			Country: []string{"RU"},
+			Country:      []string{"RU"},
 		},
-		IPAddresses: []net.IP{net.IPv4(127, 0, 0, 1), net.IPv6loopback},
-		NotBefore: time.Now(),
-		NotAfter: time.Now().AddDate(10, 0, 0),
+		IPAddresses:  []net.IP{net.IPv4(127, 0, 0, 1), net.IPv6loopback},
+		NotBefore:    time.Now(),
+		NotAfter:     time.Now().AddDate(10, 0, 0),
 		SubjectKeyId: []byte{1, 2, 3, 4, 6},
-		ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
-		KeyUsage: x509.KeyUsageDigitalSignature,
+		ExtKeyUsage:  []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
+		KeyUsage:     x509.KeyUsageDigitalSignature,
 	}
 
 	// Создаем новый приватный RSA-ключ длиной 4096 бит
@@ -45,7 +45,7 @@ func CertInit(certPath string, keyPath string) error {
 	// для хранения и обмена криптографическими ключами
 	var certPEM bytes.Buffer
 	pem.Encode(&certPEM, &pem.Block{
-		Type: "CERTIFICATE",
+		Type:  "CERTIFICATE",
 		Bytes: certBytes,
 	})
 	// Сохраняем сертификат в файл по указаному пути
@@ -56,7 +56,7 @@ func CertInit(certPath string, keyPath string) error {
 
 	var privateKeyPEM bytes.Buffer
 	pem.Encode(&privateKeyPEM, &pem.Block{
-		Type: "RSA PRIVATE KEY",
+		Type:  "RSA PRIVATE KEY",
 		Bytes: x509.MarshalPKCS1PrivateKey(privateKey),
 	})
 	// Сохраняем ключ в файл по указаному пути
