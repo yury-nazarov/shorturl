@@ -174,3 +174,12 @@ func (p *pg) OriginURLExists(ctx context.Context, originURL string) (bool, error
 	}
 	return true, nil
 }
+
+// Close - закрывает соединение c БД
+func (p *pg) Close() error {
+	err := p.db.Close()
+	if err != nil {
+		return err
+	}
+	return nil
+}

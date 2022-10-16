@@ -138,3 +138,10 @@ func (f *fileDB) GetShortURLByIdentityPath(ctx context.Context, identityPath str
 func (f *fileDB) URLBulkDelete(ctx context.Context, urlsID chan int) error {
 	return nil
 }
+
+// Close - закрывает файл
+func (f *fileDB) Close() error {
+	// Нет необходимости, т.к. в каждый метод коректно закрывает файл перез завершением
+	// При завершении сетевых соединений и работы хендлеров файл БД будет закрыт
+	return nil
+}

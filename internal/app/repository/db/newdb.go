@@ -26,6 +26,7 @@ type Repository interface {
 	URLBulkDelete(ctx context.Context, urlsID chan int) error
 	Ping() bool
 	OriginURLExists(ctx context.Context, originURL string) (bool, error)
+	Close() error
 }
 
 // TODO: Это же фабрика!

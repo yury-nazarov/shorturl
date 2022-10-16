@@ -50,8 +50,6 @@ func main() {
 	// и можно корректно завершить выполнение запросов в БД, закрыть открытые файлы и т.д.
 	idleConnectionClose := make(chan struct{})
 	// канал для перенаправления прерываний
-	// поскольку нужно отловить всего одно прерывание,
-	// ёмкости 1 для канала будет достаточно
 	sigint := make(chan os.Signal, 1)
 	// регистрируем перенаправление прерываний
 	signal.Notify(sigint)
@@ -82,7 +80,11 @@ func main() {
 	}
 
 	<-idleConnectionClose
-	// Закрываем соединение с БД, закрваем файлы
+	// Завершаем работу с БД
+	err = db.Close()
+	if err != nil {
+		logger.Infof("Close DB connection: %v", err)
+	}
 	logger.Infof("Server shutdown graseful")
 }
 

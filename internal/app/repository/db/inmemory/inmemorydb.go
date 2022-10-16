@@ -90,3 +90,9 @@ func (u *inMemoryDB) URLMarkDeleted(ctx context.Context, id int) {}
 func (u *inMemoryDB) URLBulkDelete(ctx context.Context, urlsID chan int) error {
 	return nil
 }
+
+// Close - закрывает соединение в БД
+func (u *inMemoryDB) Close() error {
+	u.db = nil
+	return nil
+}
