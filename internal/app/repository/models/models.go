@@ -33,3 +33,10 @@ type Record struct {
 	OriginURL string `json:"original_url"`
 	Token     string `json:"token"`
 }
+
+
+// Stats статистика сервиса. Сколько users, сколко URLs
+type Stats struct {
+	URLs 	int `json:"urls"`
+	Users 	int `json:"users"`
+}

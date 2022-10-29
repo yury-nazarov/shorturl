@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -326,4 +327,27 @@ func (c *Controller) AddJSONURLBatchHandler(w http.ResponseWriter, r *http.Reque
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
+}
+
+// Stats - Вернет кол-во сокращенных URL и кол-во пользователей в сервисе
+func (c *Controller) Stats(w http.ResponseWriter, r *http.Request) {
+	// TODO: Получить данные из БД
+	//stats := models.Stats{
+	//	URLs: 256,
+	//	Users: 10,
+	//}
+	stats, err := c.db.Stats(context.Background())
+
+	answer, err := json.Marshal(&stats)
+	if err != nil {
+		c.logger.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_, err = w.Write(answer)
+	if err != nil {
+		c.logger.Println("can't send answer: ", err)
+	}
+
 }

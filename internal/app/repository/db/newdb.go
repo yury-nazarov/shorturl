@@ -27,6 +27,7 @@ type Repository interface {
 	Ping() bool
 	OriginURLExists(ctx context.Context, originURL string) (bool, error)
 	Close() error
+	Stats(ctx context.Context) (models.Stats, error)
 }
 
 // TODO: Это же фабрика!

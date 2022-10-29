@@ -96,3 +96,21 @@ func (u *inMemoryDB) Close() error {
 	u.db = nil
 	return nil
 }
+
+// Stats - Внутренняя статистика сервиса
+func (u *inMemoryDB) Stats(ctx context.Context) (models.Stats, error) {
+	stats := models.Stats{}
+
+	// Считаем сколько уникальных токенов в БД
+	uniqUser := make(map[string]int)
+	for _, URLInfo := range u.db {
+		if _, ok := uniqUser[URLInfo.token]; !ok {
+			uniqUser[URLInfo.token] = 1
+		}
+	}
+	// Получаем статистику
+	stats.URLs = len(u.db)
+	stats.Users = len(uniqUser)
+
+	return stats, nil
+}

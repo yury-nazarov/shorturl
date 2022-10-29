@@ -183,3 +183,13 @@ func (p *pg) Close() error {
 	}
 	return nil
 }
+
+// Stats - Внутренняя статистика сервиса
+func (p *pg) Stats(ctx context.Context) (models.Stats, error) {
+	stats := models.Stats{}
+	err := p.db.QueryRowContext(ctx, `SELECT count(short),  count(DISTINCT owner) FROM url_service WHERE delete=true`).Scan(&stats.URLs, &stats.Users)
+	if err != nil {
+		return stats, err
+	}
+	return stats, nil
+}

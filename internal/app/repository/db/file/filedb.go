@@ -145,3 +145,9 @@ func (f *fileDB) Close() error {
 	// При завершении сетевых соединений и работы хендлеров файл БД будет закрыт
 	return nil
 }
+
+// Stats - Внутренняя статистика сервиса
+func (f *fileDB) Stats(ctx context.Context) (models.Stats, error) {
+	stats := models.Stats{}
+	return stats, nil
+}

@@ -35,6 +35,7 @@ func NewRouter(c *Controller, db db.Repository, logger *logrus.Logger) http.Hand
 	r.Route("/api", func(r chi.Router) {
 		r.Delete("/user/urls", c.DeleteURLs)
 		r.Get("/user/urls", c.GetUserURLs)
+		r.Get("/internal/stats", c.Stats)
 		r.Route("/shorten", func(r chi.Router) {
 			r.Post("/", c.AddJSONURLHandler)
 			r.Post("/batch", c.AddJSONURLBatchHandler)
