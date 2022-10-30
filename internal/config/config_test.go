@@ -29,6 +29,7 @@ func Test_parseConfigFile(t *testing.T) {
 		BaseURL:         "http://localhost",
 		FileStoragePath: "/path/to/file.db",
 		DatabaseDSN:     "",
+		TrustedSubnet: "",
 	}
 
 	cfg, err := parseConfigFile("config.json")
