@@ -42,7 +42,7 @@ func NewTestServer(dbName string, PGConnStr string) *httptest.Server {
 	if err != nil {
 		logger.Fatal(err)
 	}
-	controller := NewController(db, linkCompressor, logger)
+	controller := NewController(db, cfg, linkCompressor, logger)
 
 	r := NewRouter(controller, db, logger)
 
