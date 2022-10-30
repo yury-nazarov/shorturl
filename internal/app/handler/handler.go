@@ -359,12 +359,17 @@ func (c *Controller) Stats(w http.ResponseWriter, r *http.Request) {
 
 	// Выполянем запрос в БД для подготовки ответа
 	stats, err := c.db.Stats(context.Background())
-
+	if err != nil {
+		c.logger.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 	// Сериализуем
 	answer, err := json.Marshal(&stats)
 	if err != nil {
 		c.logger.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 	// Отправляем клиенту
 	w.Header().Add("Content-Type", "application/json")
