@@ -5,12 +5,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"sync"
 
 	"github.com/yury-nazarov/shorturl/internal/app/repository/db"
 	"github.com/yury-nazarov/shorturl/internal/app/repository/models"
 	"github.com/yury-nazarov/shorturl/internal/app/service"
+	"github.com/yury-nazarov/shorturl/internal/config"
 
 	"github.com/sirupsen/logrus"
 )
@@ -20,14 +22,16 @@ type Controller struct {
 	db     db.Repository
 	lc     service.LinkCompressor
 	logger *logrus.Logger
+	cfg 	config.Config
 }
 
 // NewController - вернет объект для доступа к хендлерам.
-func NewController(db db.Repository, lc service.LinkCompressor, logger *logrus.Logger) *Controller {
+func NewController(db db.Repository, cfg config.Config, lc service.LinkCompressor, logger *logrus.Logger) *Controller {
 	c := &Controller{
 		db:     db,
 		lc:     lc,
 		logger: logger,
+		cfg: 	cfg,
 	}
 	logger.Info("the controller success init")
 	return c
@@ -331,18 +335,38 @@ func (c *Controller) AddJSONURLBatchHandler(w http.ResponseWriter, r *http.Reque
 
 // Stats - Вернет кол-во сокращенных URL и кол-во пользователей в сервисе
 func (c *Controller) Stats(w http.ResponseWriter, r *http.Request) {
-	// TODO: Получить данные из БД
-	//stats := models.Stats{
-	//	URLs: 256,
-	//	Users: 10,
-	//}
+	// Получаем ip клиента и преобразуем в IP
+	ipAddr := r.Header.Get("X-Real-IP")
+	clientIP := net.ParseIP(ipAddr)
+
+	// Парсим довереную IP подсеть из конфига
+	_, trustNet, err := net.ParseCIDR(c.cfg.TrustedSubnet)
+	if err != nil {
+		c.logger.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	// Проверяем что clientIP удалось получить и адрес входит в довереную подсеть
+	if clientIP == nil || !trustNet.Contains(clientIP) {
+		if clientIP == nil {
+			c.logger.Println("access forbidden for nil ip address:")
+		} else {
+			c.logger.Println("access forbidden for ip:", clientIP)
+		}
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
+	// Выполянем запрос в БД для подготовки ответа
 	stats, err := c.db.Stats(context.Background())
 
+	// Сериализуем
 	answer, err := json.Marshal(&stats)
 	if err != nil {
 		c.logger.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 	}
+	// Отправляем клиенту
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	_, err = w.Write(answer)

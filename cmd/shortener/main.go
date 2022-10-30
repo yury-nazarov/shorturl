@@ -37,7 +37,7 @@ func main() {
 	// Создаем объект для доступа к методам компрессии URL.
 	linkCompressor := service.NewLinkCompressor(cfg, logger)
 	// Инициируем объект для доступа к хендлерам.
-	controller := handler.NewController(db, linkCompressor, logger)
+	controller := handler.NewController(db, cfg, linkCompressor, logger)
 	// Инициируем роутер.
 	r := handler.NewRouter(controller, db, logger)
 

@@ -19,19 +19,21 @@ import (
 //				- анмаршала JSON для чтения из файла конфига
 type Config struct {
 	// Адрес и порт на котором будет запущен сервис: 127.0.0.1:8080
-	ServerAddress string `env:"SERVER_ADDRESS"    json:"server_address"`
+	ServerAddress 	string 	`env:"SERVER_ADDRESS"    json:"server_address"`
 	// Основной FQDN/Адрес для сервиса сокращения URL: http://127.0.0.1/
-	BaseURL string `env:"BASE_URL"          json:"base_url"`
+	BaseURL 		string 	`env:"BASE_URL"          json:"base_url"`
 	// Путь до файла БД
-	FileStoragePath string `env:"FILE_STORAGE_PATH" json:"file_storage_path"`
+	FileStoragePath string 	`env:"FILE_STORAGE_PATH" json:"file_storage_path"`
 	// DNS для подключения к Postgres
-	DatabaseDSN string `env:"DATABASE_DSN"      json:"database_dsn"`
+	DatabaseDSN 	string 	`env:"DATABASE_DSN"      json:"database_dsn"`
 	// Если True то будет запущен HTTPS. Допустимые значения: true, false
-	TLS bool `env:"ENABLE_HTTPS"      json:"enable_https"`
+	TLS 			bool 	`env:"ENABLE_HTTPS"      json:"enable_https"`
+	// IP с которого разрешено подключение
+	TrustedSubnet 	string  `env:"TRUSTED_SUBNET"      json:"trusted_subnet"`
 	// Путь до файла конфигурации. Файл конфигурации обладает наименьшим приоритетом
-	fileConfig string `env:"CONFIG"`
+	fileConfig 		string `env:"CONFIG"`
 	// Длина сокращенного URL
-	URLLength int `env:"URLLength"         json:"url_length"        envDefault:"5"`
+	URLLength 		int 	`env:"URLLength"         json:"url_length"        envDefault:"5"`
 }
 
 // NewConfig создает объект для доступа к конфигу.
@@ -98,6 +100,9 @@ func selectConfig(cfgs []Config) Config {
 		if len(cfg.DatabaseDSN) == 0 {
 			cfg.DatabaseDSN = v.DatabaseDSN
 		}
+		if len(cfg.TrustedSubnet) == 0 {
+			cfg.TrustedSubnet = v.TrustedSubnet
+		}
 		if len(strconv.FormatBool(cfg.TLS)) == 0 {
 			cfg.TLS = v.TLS
 		}
@@ -113,6 +118,7 @@ func parseFlag() Config {
 	flag.StringVar(&cfg.BaseURL, "b", cfg.BaseURL, "set base URL, by example: http://127.0.0.1:8080")
 	flag.StringVar(&cfg.FileStoragePath, "f", cfg.FileStoragePath, "set file path for storage, by example: db.txt")
 	flag.StringVar(&cfg.DatabaseDSN, "d", cfg.DatabaseDSN, "set database string for Postgres, by example: 'host=localhost port=5432 user=example password=123 dbname=example sslmode=disable connect_timeout=5'")
+	flag.StringVar(&cfg.TrustedSubnet, "t", cfg.TrustedSubnet, "set allow subnet for the statistic page")
 	flag.BoolVar(&cfg.TLS, "s", cfg.TLS, "user -s for run HTTPS")
 	flag.StringVar(&cfg.fileConfig, "c", cfg.fileConfig, "user -c for use config.json")
 	// Парсим флаги
