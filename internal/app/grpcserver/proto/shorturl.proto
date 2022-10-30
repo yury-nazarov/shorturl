@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+package shorturl;
+
+option go_package = "github.com/yury-nazarov/shorturl/internal/app/grpcserver";
+
+// Добавляем URL
+message AddURLRequest {
+  string originURL = 1;
+  string userToken = 2;
+}
+
+message AddURLResponse {
+  string shortURL = 1;
+  string error = 2;
+}
+
+// Получаем URL
+message GetURLRequest {
+  string shortURL = 1;
+  string userToken = 2;
+}
+
+message GetURLResponse {
+  string originURL = 1;
+  string error = 2;
+}
+
+// Получаем все URL пользователя
+message GetAllUserURLRequest {
+  string userToken = 1;
+}
+
+message GetAllUserURLResponse {
+  repeated string url = 1;
+  string error = 2;
+
+}
+
+// TODO: Помечает URL удалеными
+message DeleteURLRequest {
+  repeated string urls = 1;
+  string userToken = 2;
+}
+
+message DeleteURLResponse {
+  string error = 1;
+}
+
+
+service ShortURL {
+  rpc AddURL(AddURLRequest) returns (AddURLResponse);
+  rpc GetURL(GetURLRequest) returns (GetURLResponse);
+  rpc GetAllUserURL(GetAllUserURLRequest) returns (GetAllUserURLResponse);
+  rpc DeleteURL(DeleteURLRequest) returns (DeleteURLResponse);
+}

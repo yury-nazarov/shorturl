@@ -2,16 +2,23 @@ package main
 
 import (
 	"context"
+	"github.com/sirupsen/logrus"
+	"github.com/yury-nazarov/shorturl/internal/app/grpcserver/server"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+
+	pb "github.com/yury-nazarov/shorturl/internal/app/grpcserver/proto"
 
 	"github.com/yury-nazarov/shorturl/internal/app/handler"
 	"github.com/yury-nazarov/shorturl/internal/app/repository/db"
 	"github.com/yury-nazarov/shorturl/internal/app/service"
 	"github.com/yury-nazarov/shorturl/internal/config"
 	"github.com/yury-nazarov/shorturl/internal/logger"
+
+	"google.golang.org/grpc"
 )
 
 var (
@@ -70,6 +77,10 @@ func main() {
 		close(idleConnectionClose)
 	}()
 
+	///////// gRPC Server /////////
+	go gRPCServer(db, linkCompressor, logger)
+
+	///////// HTTP/HTTPS Server /////////
 	if cfg.TLS {
 		certFile := "internal/tls/cert.crt"
 		keyFile := "internal/tls/private.key"
@@ -84,6 +95,7 @@ func main() {
 		}
 	}
 
+	/////// Graceful shutdown /////////
 	<-idleConnectionClose
 	// Завершаем работу с БД
 	err = db.Close()
@@ -91,4 +103,38 @@ func main() {
 		logger.Infof("Close DB connection: %v", err)
 	}
 	logger.Infof("Server shutdown graseful")
+}
+
+// Установка необходимых зависимостей для работы с gRPC
+// 		go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+// 		go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+// Генетит код из прото файла
+/*
+protoc --go_out=. --go_opt=paths=source_relative \
+    --go-grpc_out=. --go-grpc_opt=paths=source_relative \
+ 	internal/app/grpcserver/proto/shorturl.proto
+ */
+func gRPCServer(db db.Repository, lc  service.LinkCompressor, logger *logrus.Logger) {
+	// Определяем порт для сервера
+	listen, err := net.Listen("tcp", ":3200")
+	if err != nil {
+		logger.Fatalf("can't start GRPC server: %s", err)
+	}
+	// Создаем gRPC-сервер без зарегестрированной службы
+	s := grpc.NewServer()
+	// Регистрируем сервис ShorURLService на сервере gRPC
+	pb.RegisterShortURLServer(s, &server.ShorURLService{
+		DB: db,
+		LC: lc,
+	})
+
+	logger.Info("The gRPC server has been started")
+
+	// Получаем запрос gRPC
+	if err := s.Serve(listen); err != nil {
+		logger.Fatalf("stop GRPC server. Reason: %s", err)
+	}
+	// Display all ports on Mac
+	// lsof -nP -iTCP -sTCP:LISTEN
+
 }
