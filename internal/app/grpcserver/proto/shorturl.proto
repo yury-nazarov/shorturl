@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package shorturl;
 
+import "google/protobuf/empty.proto";
+
 option go_package = "github.com/yury-nazarov/shorturl/internal/app/grpcserver";
 
 // Добавляем URL
@@ -12,7 +14,6 @@ message AddURLRequest {
 
 message AddURLResponse {
   string shortURL = 1;
-  string error = 2;
 }
 
 // Получаем URL
@@ -23,7 +24,6 @@ message GetURLRequest {
 
 message GetURLResponse {
   string originURL = 1;
-  string error = 2;
 }
 
 // Получаем все URL пользователя
@@ -33,8 +33,6 @@ message GetAllUserURLRequest {
 
 message GetAllUserURLResponse {
   repeated string url = 1;
-  string error = 2;
-
 }
 
 // TODO: Помечает URL удалеными
@@ -44,7 +42,6 @@ message DeleteURLRequest {
 }
 
 message DeleteURLResponse {
-  string error = 1;
 }
 
 
@@ -52,5 +49,5 @@ service ShortURL {
   rpc AddURL(AddURLRequest) returns (AddURLResponse);
   rpc GetURL(GetURLRequest) returns (GetURLResponse);
   rpc GetAllUserURL(GetAllUserURLRequest) returns (GetAllUserURLResponse);
-  rpc DeleteURL(DeleteURLRequest) returns (DeleteURLResponse);
+  rpc DeleteURL(DeleteURLRequest) returns (google.protobuf.Empty);
 }
