@@ -9,7 +9,6 @@ option go_package = "github.com/yury-nazarov/shorturl/internal/app/grpcserver";
 // Добавляем URL
 message AddURLRequest {
   string originURL = 1;
-  string userToken = 2;
 }
 
 message AddURLResponse {
@@ -19,7 +18,6 @@ message AddURLResponse {
 // Получаем URL
 message GetURLRequest {
   string shortURL = 1;
-  string userToken = 2;
 }
 
 message GetURLResponse {
@@ -35,21 +33,21 @@ message GetAllUserURLResponse {
   repeated string url = 1;
 }
 
-// TODO: Помечает URL удалеными
+// Помечает URL удалеными
 message DeleteURLRequest {
   repeated string urls = 1;
-  string userToken = 2;
 }
 
 message DeleteURLResponse {
 }
 
+// Статистика сервиса
 message StatsURLRequest {
 }
 
 message StatsURLResponse {
-  string countShortURL = 1;
-  string countUsers = 2;
+  int32 countShortURL = 1;
+  int32 countUsers = 2;
 }
 
 service ShortURL {

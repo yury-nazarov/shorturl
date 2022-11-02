@@ -7,6 +7,7 @@ import (
 	"github.com/yury-nazarov/shorturl/internal/app/repository/db"
 	"github.com/yury-nazarov/shorturl/internal/app/service"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"sync"
 )
@@ -21,12 +22,31 @@ type ShorURLService struct {
 
 }
 
+func checkToken(ctx context.Context) (string, bool) {
+	// Проверяем наличие метедаты
+	md, ok := metadata.FromIncomingContext(ctx)
+	if ok {
+		values := md.Get("token")
+		if len(values) > 0 {
+			return values[0], true
+		}
+	}
+	return "", false
+}
+
+
 // AddURL добавляет новый URL
 func (s *ShorURLService) AddURL(ctx context.Context, in *pb.AddURLRequest) (*pb.AddURLResponse, error) {
 	var response pb.AddURLResponse
 
+	// Проверяем наличие токена
+	token, ok := checkToken(ctx)
+	if !ok {
+		return  &response, status.Errorf(codes.NotFound,"token not install")
+	}
+
 	shortURL := s.LC.SortURL(in.OriginURL)
-	err := s.DB.Add(context.Background(), shortURL, in.OriginURL, in.UserToken)
+	err := s.DB.Add(context.Background(), shortURL, in.OriginURL, token)
 	if err != nil {
 		return  &response, status.Errorf(codes.Internal,"can't add url: %s", err)
 	}
@@ -38,7 +58,13 @@ func (s *ShorURLService) AddURL(ctx context.Context, in *pb.AddURLRequest) (*pb.
 func (s *ShorURLService) GetURL(ctx context.Context, in *pb.GetURLRequest) (*pb.GetURLResponse, error)  {
 	var response pb.GetURLResponse
 
-	originURL, err := s.DB.Get(ctx, in.ShortURL, in.UserToken)
+	// Проверяем наличие токена
+	token, ok := checkToken(ctx)
+	if !ok {
+		return  &response, status.Errorf(codes.NotFound,"token not install")
+	}
+
+	originURL, err := s.DB.Get(ctx, in.ShortURL, token)
 	if err != nil {
 		return &response, status.Errorf(codes.Internal, "can't get url: %s", err)
 	}
@@ -50,8 +76,14 @@ func (s *ShorURLService) GetURL(ctx context.Context, in *pb.GetURLRequest) (*pb.
 func (s *ShorURLService) GetAllUserURL(ctx context.Context, in *pb.GetAllUserURLRequest) (*pb.GetAllUserURLResponse, error) {
 	var response pb.GetAllUserURLResponse
 
+	// Проверяем наличие токена
+	token, ok := checkToken(ctx)
+	if !ok {
+		return  &response, status.Errorf(codes.NotFound,"token not install")
+	}
+
 	// Получаем все записи из БД
-	userURL, err := s.DB.GetUserURL(ctx, in.UserToken)
+	userURL, err := s.DB.GetUserURL(ctx, token)
 	if err != nil {
 		return &response, status.Errorf(codes.NotFound,"content not found: %s", err)
 	}
@@ -66,6 +98,12 @@ func (s *ShorURLService) GetAllUserURL(ctx context.Context, in *pb.GetAllUserURL
 func (s *ShorURLService) DeleteURL(ctx context.Context, in *pb.DeleteURLRequest) (*pb.DeleteURLResponse, error) {
 	var response pb.DeleteURLResponse
 
+	// Проверяем наличие токена
+	token, ok := checkToken(ctx)
+	if !ok {
+		return  &response, status.Errorf(codes.NotFound,"token not install")
+	}
+
 	// Получаем id записей которые нужно пометить удаленными
 	urlsID := make(chan int, len(in.Urls))
 
@@ -73,7 +111,7 @@ func (s *ShorURLService) DeleteURL(ctx context.Context, in *pb.DeleteURLRequest)
 	for _, identity := range in.Urls {
 		wg.Add(1)
 		go func(identity string) {
-			id := s.DB.GetShortURLByIdentityPath(ctx, identity, in.UserToken)
+			id := s.DB.GetShortURLByIdentityPath(ctx, identity, token)
 			urlsID <- id
 			wg.Done()
 		}(identity)
