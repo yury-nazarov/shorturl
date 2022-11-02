@@ -88,3 +88,11 @@ func (s *ShorURLService) DeleteURL(ctx context.Context, in *pb.DeleteURLRequest)
 	}
 	return &response, status.Error(codes.OK, "success delete")
 }
+
+// Stats - Вернет кол-во сокращенных URL и кол-во пользователей в сервис
+func (s *ShorURLService) Stats(ctx context.Context, in *pb.StatsURLRequest) (*pb.StatsURLResponse, error) {
+	var response pb.StatsURLResponse
+	// TODO
+
+	return &response, status.Errorf(codes.OK, "success")
+}

@@ -44,10 +44,18 @@ message DeleteURLRequest {
 message DeleteURLResponse {
 }
 
+message StatsURLRequest {
+}
+
+message StatsURLResponse {
+  string countShortURL = 1;
+  string countUsers = 2;
+}
 
 service ShortURL {
   rpc AddURL(AddURLRequest) returns (AddURLResponse);
   rpc GetURL(GetURLRequest) returns (GetURLResponse);
   rpc GetAllUserURL(GetAllUserURLRequest) returns (GetAllUserURLResponse);
   rpc DeleteURL(DeleteURLRequest) returns (DeleteURLResponse);
+  rpc Stats(StatsURLRequest) returns (StatsURLResponse);
 }

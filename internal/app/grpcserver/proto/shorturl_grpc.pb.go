@@ -26,6 +26,7 @@ type ShortURLClient interface {
 	GetURL(ctx context.Context, in *GetURLRequest, opts ...grpc.CallOption) (*GetURLResponse, error)
 	GetAllUserURL(ctx context.Context, in *GetAllUserURLRequest, opts ...grpc.CallOption) (*GetAllUserURLResponse, error)
 	DeleteURL(ctx context.Context, in *DeleteURLRequest, opts ...grpc.CallOption) (*DeleteURLResponse, error)
+	Stats(ctx context.Context, in *StatsURLRequest, opts ...grpc.CallOption) (*StatsURLResponse, error)
 }
 
 type shortURLClient struct {
@@ -72,6 +73,15 @@ func (c *shortURLClient) DeleteURL(ctx context.Context, in *DeleteURLRequest, op
 	return out, nil
 }
 
+func (c *shortURLClient) Stats(ctx context.Context, in *StatsURLRequest, opts ...grpc.CallOption) (*StatsURLResponse, error) {
+	out := new(StatsURLResponse)
+	err := c.cc.Invoke(ctx, "/shorturl.ShortURL/Stats", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ShortURLServer is the server API for ShortURL service.
 // All implementations must embed UnimplementedShortURLServer
 // for forward compatibility
@@ -80,6 +90,7 @@ type ShortURLServer interface {
 	GetURL(context.Context, *GetURLRequest) (*GetURLResponse, error)
 	GetAllUserURL(context.Context, *GetAllUserURLRequest) (*GetAllUserURLResponse, error)
 	DeleteURL(context.Context, *DeleteURLRequest) (*DeleteURLResponse, error)
+	Stats(context.Context, *StatsURLRequest) (*StatsURLResponse, error)
 	mustEmbedUnimplementedShortURLServer()
 }
 
@@ -98,6 +109,9 @@ func (UnimplementedShortURLServer) GetAllUserURL(context.Context, *GetAllUserURL
 }
 func (UnimplementedShortURLServer) DeleteURL(context.Context, *DeleteURLRequest) (*DeleteURLResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteURL not implemented")
+}
+func (UnimplementedShortURLServer) Stats(context.Context, *StatsURLRequest) (*StatsURLResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Stats not implemented")
 }
 func (UnimplementedShortURLServer) mustEmbedUnimplementedShortURLServer() {}
 
@@ -184,6 +198,24 @@ func _ShortURL_DeleteURL_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ShortURL_Stats_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StatsURLRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShortURLServer).Stats(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/shorturl.ShortURL/Stats",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShortURLServer).Stats(ctx, req.(*StatsURLRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ShortURL_ServiceDesc is the grpc.ServiceDesc for ShortURL service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -206,6 +238,10 @@ var ShortURL_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteURL",
 			Handler:    _ShortURL_DeleteURL_Handler,
+		},
+		{
+			MethodName: "Stats",
+			Handler:    _ShortURL_Stats_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
