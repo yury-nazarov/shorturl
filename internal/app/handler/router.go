@@ -1,15 +1,17 @@
 package handler
 
 import (
+	"net/http"
+
 	"github.com/sirupsen/logrus"
 	"github.com/yury-nazarov/shorturl/internal/app/repository/db"
-	"net/http"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	appMiddleware "github.com/yury-nazarov/shorturl/internal/app/middleware"
 )
 
+// NewRouter создает новый роутер.
 func NewRouter(c *Controller, db db.Repository, logger *logrus.Logger) http.Handler {
 	// Инициируем Router
 	r := chi.NewRouter()
@@ -33,12 +35,14 @@ func NewRouter(c *Controller, db db.Repository, logger *logrus.Logger) http.Hand
 	r.Route("/api", func(r chi.Router) {
 		r.Delete("/user/urls", c.DeleteURLs)
 		r.Get("/user/urls", c.GetUserURLs)
+		r.Get("/internal/stats", c.Stats)
 		r.Route("/shorten", func(r chi.Router) {
 			r.Post("/", c.AddJSONURLHandler)
 			r.Post("/batch", c.AddJSONURLBatchHandler)
 		})
 	})
 	r.HandleFunc("/ping", c.PingDB)
+	r.Mount("/debug", middleware.Profiler())
 	c.logger.Info("the handler endpoint success init")
 	return r
 }
