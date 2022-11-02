@@ -6,6 +6,8 @@ import (
 	pb "github.com/yury-nazarov/shorturl/internal/app/grpcserver/proto"
 	"github.com/yury-nazarov/shorturl/internal/app/repository/db"
 	"github.com/yury-nazarov/shorturl/internal/app/service"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"sync"
 )
 
@@ -26,10 +28,10 @@ func (s *ShorURLService) AddURL(ctx context.Context, in *pb.AddURLRequest) (*pb.
 	shortURL := s.LC.SortURL(in.OriginURL)
 	err := s.DB.Add(context.Background(), shortURL, in.OriginURL, in.UserToken)
 	if err != nil {
-		return  &response, err
+		return  &response, status.Errorf(codes.Internal,"can't add url: %s", err)
 	}
 	response.ShortURL = shortURL
-	return &response, nil
+	return &response, status.Errorf(codes.OK, "")
 }
 
 // GetURL вернет оригинальный URL по сокращенному
@@ -38,10 +40,10 @@ func (s *ShorURLService) GetURL(ctx context.Context, in *pb.GetURLRequest) (*pb.
 
 	originURL, err := s.DB.Get(ctx, in.ShortURL, in.UserToken)
 	if err != nil {
-		return &response, err
+		return &response, status.Errorf(codes.Internal, "can't get url: %s", err)
 	}
 	response.OriginURL = originURL
-	return &response, err
+	return &response, status.Errorf(codes.OK, "success get url")
 }
 
 // GetAllUserURL вернет все URL пользователя
@@ -51,13 +53,13 @@ func (s *ShorURLService) GetAllUserURL(ctx context.Context, in *pb.GetAllUserURL
 	// Получаем все записи из БД
 	userURL, err := s.DB.GetUserURL(ctx, in.UserToken)
 	if err != nil {
-		return &response, err
+		return &response, status.Errorf(codes.NotFound,"content not found: %s", err)
 	}
 
 	for _, url := range userURL {
 		response.Url = append(response.Url, fmt.Sprintf("%s,%s", url.OriginURL, url.ShortURL))
 	}
-	return &response, nil
+	return &response, status.Error(codes.OK, "success get all url")
 }
 
 // DeleteURL помечает URL удаленными
@@ -84,5 +86,5 @@ func (s *ShorURLService) DeleteURL(ctx context.Context, in *pb.DeleteURLRequest)
 	if err := s.DB.URLBulkDelete(ctx, urlsID); err != nil {
 		return &response, err
 	}
-	return &response, nil
+	return &response, status.Error(codes.OK, "success delete")
 }
