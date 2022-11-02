@@ -3,13 +3,17 @@ package server
 import (
 	"context"
 	"fmt"
+	"net"
+	"sync"
+
 	pb "github.com/yury-nazarov/shorturl/internal/app/grpcserver/proto"
 	"github.com/yury-nazarov/shorturl/internal/app/repository/db"
 	"github.com/yury-nazarov/shorturl/internal/app/service"
+	"github.com/yury-nazarov/shorturl/internal/config"
+
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
-	"sync"
 )
 
 type ShorURLService struct {
@@ -19,28 +23,28 @@ type ShorURLService struct {
 	//pb.UnsafeShortURLServer
 	DB db.Repository
 	LC  service.LinkCompressor
+	CFG config.Config
 
 }
 
-func checkToken(ctx context.Context) (string, bool) {
+func checkContextValue(ctx context.Context, value string) (string, bool) {
 	// Проверяем наличие метедаты
 	md, ok := metadata.FromIncomingContext(ctx)
 	if ok {
-		values := md.Get("token")
-		if len(values) > 0 {
-			return values[0], true
+		arr := md.Get(value)
+		if len(arr) > 0 {
+			return arr[0], true
 		}
 	}
 	return "", false
 }
-
 
 // AddURL добавляет новый URL
 func (s *ShorURLService) AddURL(ctx context.Context, in *pb.AddURLRequest) (*pb.AddURLResponse, error) {
 	var response pb.AddURLResponse
 
 	// Проверяем наличие токена
-	token, ok := checkToken(ctx)
+	token, ok := checkContextValue(ctx, "token")
 	if !ok {
 		return  &response, status.Errorf(codes.NotFound,"token not install")
 	}
@@ -59,7 +63,7 @@ func (s *ShorURLService) GetURL(ctx context.Context, in *pb.GetURLRequest) (*pb.
 	var response pb.GetURLResponse
 
 	// Проверяем наличие токена
-	token, ok := checkToken(ctx)
+	token, ok := checkContextValue(ctx, "token")
 	if !ok {
 		return  &response, status.Errorf(codes.NotFound,"token not install")
 	}
@@ -77,7 +81,7 @@ func (s *ShorURLService) GetAllUserURL(ctx context.Context, in *pb.GetAllUserURL
 	var response pb.GetAllUserURLResponse
 
 	// Проверяем наличие токена
-	token, ok := checkToken(ctx)
+	token, ok := checkContextValue(ctx, "token")
 	if !ok {
 		return  &response, status.Errorf(codes.NotFound,"token not install")
 	}
@@ -99,7 +103,7 @@ func (s *ShorURLService) DeleteURL(ctx context.Context, in *pb.DeleteURLRequest)
 	var response pb.DeleteURLResponse
 
 	// Проверяем наличие токена
-	token, ok := checkToken(ctx)
+	token, ok := checkContextValue(ctx, "token")
 	if !ok {
 		return  &response, status.Errorf(codes.NotFound,"token not install")
 	}
@@ -130,7 +134,31 @@ func (s *ShorURLService) DeleteURL(ctx context.Context, in *pb.DeleteURLRequest)
 // Stats - Вернет кол-во сокращенных URL и кол-во пользователей в сервис
 func (s *ShorURLService) Stats(ctx context.Context, in *pb.StatsURLRequest) (*pb.StatsURLResponse, error) {
 	var response pb.StatsURLResponse
-	// TODO
+
+	// Проверяем src ip
+	ipAddr, ok := checkContextValue(ctx, "X-Real-IP")
+	if !ok {
+		return  &response, status.Errorf(codes.PermissionDenied,"assess forbidden")
+	}
+	clientIP := net.ParseIP(ipAddr)
+	// Парсим довереную IP подсеть из конфига
+	_, trustNet, err := net.ParseCIDR(s.CFG.TrustedSubnet)
+	if err != nil {
+		return  &response, status.Errorf(codes.PermissionDenied,"assess forbidden")
+	}
+	// Проверяем что clientIP удалось получить и адрес входит в довереную подсеть
+	if clientIP == nil || !trustNet.Contains(clientIP) {
+		return  &response, status.Errorf(codes.PermissionDenied,"assess forbidden")
+	}
+
+
+	// Выполняем запрос
+	stats, err := s.DB.Stats(context.Background())
+	if err != nil {
+		return &response, status.Errorf(codes.Internal,"can't get stats from DB")
+	}
+	response.CountShortURL = int32(stats.URLs)
+	response.CountUsers = int32(stats.Users)
 
 	return &response, status.Errorf(codes.OK, "success")
 }

@@ -78,7 +78,7 @@ func main() {
 	}()
 
 	///////// gRPC Server /////////
-	go gRPCServer(db, linkCompressor, logger)
+	go gRPCServer(db, linkCompressor, logger, cfg)
 
 	///////// HTTP/HTTPS Server /////////
 	if cfg.TLS {
@@ -114,7 +114,7 @@ protoc --go_out=. --go_opt=paths=source_relative \
     --go-grpc_out=. --go-grpc_opt=paths=source_relative \
  	internal/app/grpcserver/proto/shorturl.proto
  */
-func gRPCServer(db db.Repository, lc  service.LinkCompressor, logger *logrus.Logger) {
+func gRPCServer(db db.Repository, lc  service.LinkCompressor, logger *logrus.Logger, cfg config.Config) {
 	// Определяем порт для сервера
 	listen, err := net.Listen("tcp", ":3200")
 	if err != nil {
@@ -126,6 +126,7 @@ func gRPCServer(db db.Repository, lc  service.LinkCompressor, logger *logrus.Log
 	pb.RegisterShortURLServer(s, &server.ShorURLService{
 		DB: db,
 		LC: lc,
+		CFG: cfg,
 	})
 
 	logger.Info("The gRPC server has been started")
