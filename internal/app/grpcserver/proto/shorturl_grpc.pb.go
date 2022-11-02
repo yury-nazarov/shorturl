@@ -11,7 +11,6 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
-	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -26,7 +25,7 @@ type ShortURLClient interface {
 	AddURL(ctx context.Context, in *AddURLRequest, opts ...grpc.CallOption) (*AddURLResponse, error)
 	GetURL(ctx context.Context, in *GetURLRequest, opts ...grpc.CallOption) (*GetURLResponse, error)
 	GetAllUserURL(ctx context.Context, in *GetAllUserURLRequest, opts ...grpc.CallOption) (*GetAllUserURLResponse, error)
-	DeleteURL(ctx context.Context, in *DeleteURLRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	DeleteURL(ctx context.Context, in *DeleteURLRequest, opts ...grpc.CallOption) (*DeleteURLResponse, error)
 }
 
 type shortURLClient struct {
@@ -64,8 +63,8 @@ func (c *shortURLClient) GetAllUserURL(ctx context.Context, in *GetAllUserURLReq
 	return out, nil
 }
 
-func (c *shortURLClient) DeleteURL(ctx context.Context, in *DeleteURLRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
+func (c *shortURLClient) DeleteURL(ctx context.Context, in *DeleteURLRequest, opts ...grpc.CallOption) (*DeleteURLResponse, error) {
+	out := new(DeleteURLResponse)
 	err := c.cc.Invoke(ctx, "/shorturl.ShortURL/DeleteURL", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -80,7 +79,7 @@ type ShortURLServer interface {
 	AddURL(context.Context, *AddURLRequest) (*AddURLResponse, error)
 	GetURL(context.Context, *GetURLRequest) (*GetURLResponse, error)
 	GetAllUserURL(context.Context, *GetAllUserURLRequest) (*GetAllUserURLResponse, error)
-	DeleteURL(context.Context, *DeleteURLRequest) (*emptypb.Empty, error)
+	DeleteURL(context.Context, *DeleteURLRequest) (*DeleteURLResponse, error)
 	mustEmbedUnimplementedShortURLServer()
 }
 
@@ -97,7 +96,7 @@ func (UnimplementedShortURLServer) GetURL(context.Context, *GetURLRequest) (*Get
 func (UnimplementedShortURLServer) GetAllUserURL(context.Context, *GetAllUserURLRequest) (*GetAllUserURLResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAllUserURL not implemented")
 }
-func (UnimplementedShortURLServer) DeleteURL(context.Context, *DeleteURLRequest) (*emptypb.Empty, error) {
+func (UnimplementedShortURLServer) DeleteURL(context.Context, *DeleteURLRequest) (*DeleteURLResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteURL not implemented")
 }
 func (UnimplementedShortURLServer) mustEmbedUnimplementedShortURLServer() {}

@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package shorturl;
 
-import "google/protobuf/empty.proto";
+//import "google/protobuf/empty.proto";
 
 option go_package = "github.com/yury-nazarov/shorturl/internal/app/grpcserver";
 
@@ -49,5 +49,5 @@ service ShortURL {
   rpc AddURL(AddURLRequest) returns (AddURLResponse);
   rpc GetURL(GetURLRequest) returns (GetURLResponse);
   rpc GetAllUserURL(GetAllUserURLRequest) returns (GetAllUserURLResponse);
-  rpc DeleteURL(DeleteURLRequest) returns (google.protobuf.Empty);
+  rpc DeleteURL(DeleteURLRequest) returns (DeleteURLResponse);
 }

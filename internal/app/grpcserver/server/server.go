@@ -13,54 +13,55 @@ type ShorURLService struct {
 	// нужно встраивать тип pb.Unimplemented<TypeName>
 	// для совместимости с будущими версиями
 	pb.UnimplementedShortURLServer
+	//pb.UnsafeShortURLServer
 	DB db.Repository
 	LC  service.LinkCompressor
 
 }
 
 // AddURL добавляет новый URL
-func (s *ShorURLService) AddURL(ctx context.Context, in *pb.AddURLRequest) (*pb.AddURLResponse) {
+func (s *ShorURLService) AddURL(ctx context.Context, in *pb.AddURLRequest) (*pb.AddURLResponse, error) {
 	var response pb.AddURLResponse
 
 	shortURL := s.LC.SortURL(in.OriginURL)
 	err := s.DB.Add(context.Background(), shortURL, in.OriginURL, in.UserToken)
 	if err != nil {
-		return  &response
+		return  &response, err
 	}
 	response.ShortURL = shortURL
-	return &response
+	return &response, nil
 }
 
 // GetURL вернет оригинальный URL по сокращенному
-func (s *ShorURLService) GetURL(ctx context.Context, in *pb.GetURLRequest) (*pb.GetURLResponse)  {
+func (s *ShorURLService) GetURL(ctx context.Context, in *pb.GetURLRequest) (*pb.GetURLResponse, error)  {
 	var response pb.GetURLResponse
 
 	originURL, err := s.DB.Get(ctx, in.ShortURL, in.UserToken)
 	if err != nil {
-		return &response
+		return &response, err
 	}
 	response.OriginURL = originURL
-	return &response
+	return &response, err
 }
 
 // GetAllUserURL вернет все URL пользователя
-func (s *ShorURLService) GetAllUserURL(ctx context.Context, in *pb.GetAllUserURLRequest) (*pb.GetAllUserURLResponse) {
+func (s *ShorURLService) GetAllUserURL(ctx context.Context, in *pb.GetAllUserURLRequest) (*pb.GetAllUserURLResponse, error) {
 	var response pb.GetAllUserURLResponse
 
 	// Получаем все записи из БД
 	userURL, err := s.DB.GetUserURL(ctx, in.UserToken)
 	if err != nil {
-		return &response
+		return &response, err
 	}
 
 	for _, url := range userURL {
 		response.Url = append(response.Url, fmt.Sprintf("%s,%s", url.OriginURL, url.ShortURL))
 	}
-	return &response
+	return &response, nil
 }
 
 // DeleteURL помечает URL удаленными
-func (s *ShorURLService) DeleteURL(ctx context.Context, in *pb.DeleteURLRequest) (*pb.DeleteURLResponse) {
+func (s *ShorURLService) DeleteURL(ctx context.Context, in *pb.DeleteURLRequest) (*pb.DeleteURLResponse, error) {
 	var response pb.DeleteURLResponse
 
 	// Получаем id записей которые нужно пометить удаленными
@@ -81,7 +82,7 @@ func (s *ShorURLService) DeleteURL(ctx context.Context, in *pb.DeleteURLRequest)
 
 	// Помечаем удаленными пачку записей
 	if err := s.DB.URLBulkDelete(ctx, urlsID); err != nil {
-		return &response
+		return &response, err
 	}
-	return &response
+	return &response, nil
 }
